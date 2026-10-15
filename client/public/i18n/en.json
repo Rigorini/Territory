@@ -1,0 +1,348 @@
+{
+  "app": {
+    "title": "Territory Register"
+  },
+  "account": {
+    "changePassword": "Change password",
+    "changePasswordTitle": "Change your password",
+    "currentPassword": "Current password",
+    "mustChangeTitle": "Choose your password",
+    "mustChangeNotice": "Your account has just been created: choose a new personal password to continue.",
+    "passwordChanged": "Password updated"
+  },
+  "nav": {
+    "admins": "Users",
+    "territories": "Territories",
+    "publishers": "Publishers",
+    "assignments": "Assignments",
+    "export": "Export register",
+    "backup": "Backup"
+  },
+  "backup": {
+    "exportTitle": "Export backup",
+    "exportHint": "Download a .ter file (zip archive) with publishers, territories and assignments (users are excluded). Names are stored in clear text: keep the file in a safe place.",
+    "exportAction": "Export backup",
+    "importTitle": "Import backup",
+    "importWarning": "Warning: importing overwrites all existing data (municipalities, territories, publishers and assignments). This cannot be undone.",
+    "importAction": "Choose file and import",
+    "confirmTitle": "Overwrite data?",
+    "confirmMessage": "All current municipalities, territories, publishers and assignments will be deleted and replaced with the content of \"{{file}}\". Do you want to continue?",
+    "confirmAction": "Overwrite",
+    "imported": "Backup imported: {{municipalities}} municipalities, {{territories}} territories, {{publishers}} publishers, {{assignments}} assignments."
+  },
+  "prefs": {
+    "title": "Preferences",
+    "theme": "Theme",
+    "themes": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "language": "Language",
+    "languages": {
+      "en": "English",
+      "it": "Italiano"
+    }
+  },
+  "auth": {
+    "logout": "Sign out"
+  },
+  "login": {
+    "subtitle": "User sign in",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign in",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
+  },
+  "setup": {
+    "subtitle": "Initial setup",
+    "intro": "No user exists yet. Enter the details of the first user: it will be created together with everything the application needs, and you will be signed in right away.",
+    "submit": "Create user"
+  },
+  "admins": {
+    "add": "New user",
+    "addTitle": "New user",
+    "editTitle": "Edit user",
+    "displayName": "Full name",
+    "displayNameHint": "Name of the person, shown in the history",
+    "role": "Role",
+    "roles": { "1": "Administrator", "2": "Manager", "3": "Assigner" },
+    "roleHint": {
+      "1": "Full access",
+      "2": "Assigns territories, manages publishers, exports the register and backs up (no import)",
+      "3": "Assigns territories only"
+    },
+    "username": "Username",
+    "usernameHint": "3-50 characters: letters, digits, . _ -",
+    "password": "Password",
+    "newPassword": "New password",
+    "keepPasswordHint": "Leave empty to keep the current password",
+    "confirmPassword": "Confirm password",
+    "passwordRules": "Password requirements",
+    "rules": {
+      "tooShort": "At least 12 characters",
+      "tooLong": "At most 128 characters",
+      "missingUppercase": "One uppercase letter",
+      "missingLowercase": "One lowercase letter",
+      "missingDigit": "One digit",
+      "missingSymbol": "One symbol"
+    },
+    "createdAt": "Created on",
+    "status": "Status",
+    "statuses": {
+      "active": "Active",
+      "locked": "Locked"
+    },
+    "you": "you",
+    "created": "User created",
+    "updated": "User updated",
+    "deleted": "User deleted",
+    "deleteTitle": "Delete user?",
+    "deleteMessage": "The account \"{{username}}\" will be permanently deleted and its sessions closed."
+  },
+  "territories": {
+    "tab": "Territories",
+    "add": "New territory",
+    "addTitle": "New territory",
+    "editTitle": "Edit territory",
+    "municipality": "Municipality",
+    "number": "Number",
+    "name": "Name",
+    "map": "Map",
+    "mapUrl": "Google MyMaps link",
+    "mapUrlHint": "E.g. https://www.google.com/maps/d/edit?mid=…",
+    "openMap": "Open the map in a new tab",
+    "needMunicipality": "Create a municipality first",
+    "created": "Territory created",
+    "updated": "Territory updated",
+    "deleted": "Territory deleted",
+    "confirmSaveTitle": "Save the territory?",
+    "confirmSaveMessage": "Territory {{number}} - {{name}} ({{municipality}}).",
+    "deleteTitle": "Delete the territory?",
+    "deleteMessage": "Territory {{number}} - {{name}} will be deleted.",
+    "deleteHistoryTitle": "Delete its history too?",
+    "deleteHistoryMessage": "The territory has {{count}} recorded assignments: they will be permanently removed from the register.",
+    "deleteHistoryConfirm": "Delete everything"
+  },
+  "municipalities": {
+    "tab": "Municipalities",
+    "add": "New municipality",
+    "addTitle": "New municipality",
+    "editTitle": "Edit municipality",
+    "name": "Name",
+    "territoryCount": "Territories",
+    "created": "Municipality created",
+    "updated": "Municipality updated",
+    "deleted": "Municipality deleted",
+    "deleteTitle": "Delete the municipality?",
+    "deleteMessage": "Municipality \"{{name}}\" will be deleted.",
+    "cannotDelete": "Cannot be deleted: it contains territories"
+  },
+  "publishers": {
+    "add": "New publisher",
+    "addTitle": "New publisher",
+    "editTitle": "Edit publisher",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "created": "Publisher created",
+    "updated": "Publisher updated",
+    "reactivated": "This publisher existed before and has been reactivated",
+    "deleted": "Publisher deleted",
+    "confirmSaveTitle": "Save the publisher?",
+    "confirmSaveMessage": "{{lastName}} {{firstName}}",
+    "deleteTitle": "Delete the publisher?",
+    "deleteMessage": "{{lastName}} {{firstName}} will no longer be selectable; the assignment history stays in the register."
+  },
+  "common": {
+    "menu": "Menu",
+    "dateHint": "dd/mm/yyyy",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "actions": "Actions",
+    "filters": "Filters",
+    "filterBy": "Filter by {{column}}",
+    "clearFilters": "Clear",
+    "all": "All",
+    "noResults": "No results",
+    "close": "Close",
+    "loading": "Loading…"
+  },
+  "errors": {
+    "notFound": "Page not found",
+    "fields": {
+      "required": "Required field",
+      "invalidFormat": "Invalid format",
+      "passwordMismatch": "Passwords do not match",
+      "invalidBackup": "The backup file is invalid or corrupted.",
+      "unsupportedVersion": "Unsupported backup version.",
+      "invalidValues": "The backup contains invalid values.",
+      "duplicateEntries": "The backup contains duplicate entries.",
+      "brokenReference": "The backup references items that do not exist.",
+      "invalidAssignments": "The backup contains inconsistent assignments.",
+      "usernameTaken": "Username already in use",
+      "tooShort": "At least 12 characters",
+      "tooLong": "At most 128 characters",
+      "missingUppercase": "Missing an uppercase letter",
+      "missingLowercase": "Missing a lowercase letter",
+      "missingDigit": "Missing a digit",
+      "missingSymbol": "Missing a symbol",
+      "maxLength": "Text too long",
+      "outOfRange": "Value out of range (1-9999)",
+      "notFound": "Item not found",
+      "numberTaken": "Number already used in this municipality",
+      "nameTaken": "Name already in use",
+      "invalidMapUrl": "Enter a Google MyMaps link (https://www.google.com/maps/d/…?mid=…)",
+      "inFuture": "The date cannot be in the future",
+      "invalidDate": "Invalid date: use dd/mm/yyyy",
+      "beforeLastReturn": "Date before the last return",
+      "beforeAssigned": "Date before the assignment",
+      "afterNextAssignment": "Date after the next assignment",
+      "wrongPassword": "Incorrect password"
+    },
+    "codes": {
+      "generic": "Something went wrong. Please try again.",
+      "network": "Unable to reach the server.",
+      "tooManyRequests": "Too many attempts. Please wait a few minutes.",
+      "validation": "Please check the entered data.",
+      "backup": {
+        "confirmRequired": "Confirm the overwrite to import the backup."
+      },
+      "auth": {
+        "invalidCredentials": "Invalid credentials or account temporarily locked.",
+        "antiforgery": "Session expired: please reload the page.",
+        "passwordChangeRequired": "You must change your password first."
+      },
+      "admins": {
+        "usernameTaken": "Username already in use.",
+        "notFound": "User not found.",
+        "cannotDeleteSelf": "You cannot delete your own account.",
+        "cannotChangeOwnRole": "You cannot change your own role."
+      },
+      "municipalities": {
+        "nameTaken": "A municipality with this name already exists.",
+        "notFound": "Municipality not found.",
+        "hasTerritories": "The municipality contains territories: delete or move them first."
+      },
+      "territories": {
+        "numberTaken": "Number already used in this municipality.",
+        "notFound": "Territory not found.",
+        "hasAssignments": "The territory has assignments: confirm deleting its history."
+      },
+      "publishers": {
+        "duplicate": "A publisher with this name already exists.",
+        "duplicateDeleted": "This name belongs to a deleted publisher: create it again to reactivate it.",
+        "notFound": "Publisher not found.",
+        "hasOpenAssignment": "The publisher has a territory assigned: record its return first."
+      },
+      "assignments": {
+        "notFound": "Assignment not found.",
+        "alreadyAssigned": "The territory is already assigned.",
+        "alreadyReturned": "The territory has already been returned."
+      },
+      "public": {
+        "invalidLink": "This link is not valid.",
+        "mapUnavailable": "The map is not available right now."
+      }
+    }
+  },
+  "assignments": {
+    "status": "Status",
+    "statuses": {
+      "assigned": "Assigned",
+      "available": "Available"
+    },
+    "publisher": "Publisher",
+    "date": "Date",
+    "assignedAt": "Assigned on",
+    "returnedAt": "Returned on",
+    "lastReturnedAt": "Last returned",
+    "frequency": "Every (avg.)",
+    "frequencyHint": "Average interval between assignments of the territory over the last year (mo = 30-day months, d = days)",
+    "frequencyValue": "{{months}} mo {{days}} d",
+    "returnedBy": "Returned by",
+    "returnedByValues": {
+      "publisher": "Publisher (link)",
+      "admin": "Administrator"
+    },
+    "assign": "Assign",
+    "assignTitle": "Assign territory {{number}} – {{name}}",
+    "assigned": "Territory assigned.",
+    "noPublishers": "No active publishers: add one first.",
+    "share": "Share link",
+    "renewTitle": "New share link",
+    "renewMessage": "To share territory {{number}} – {{name}} ({{publisher}}) a new link will be created: the one sent before will stop working.",
+    "renewConfirm": "Create new link",
+    "shareTitle": "Share territory {{number}} – {{name}}",
+    "shareHint": "The link is secret and valid until the return. Send it only to the assigned publisher: it will not be shown again.",
+    "shareText": "Territory {{number}} – {{name}} ({{municipality}})",
+    "shareSystem": "Share…",
+    "shareFailed": "Sharing failed.",
+    "copyLink": "Copy link",
+    "copied": "Link copied to the clipboard.",
+    "copyFailed": "Unable to copy the link.",
+    "registerReturn": "Register return",
+    "returnTitle": "Register return",
+    "returnMessage": "Territory {{number}} – {{name}}, assigned to {{publisher}}.",
+    "returned": "Return registered.",
+    "history": "Assignment history",
+    "historyTitle": "History of territory {{number}} – {{name}}",
+    "historyEmpty": "No assignments recorded.",
+    "editDates": "Edit dates",
+    "editDatesTitle": "Edit dates",
+    "editDatesMessage": "Territory {{number}} – {{name}}, assigned to {{publisher}}.",
+    "datesUpdated": "Dates updated."
+  },
+  "public": {
+    "territoryTitle": "Territory {{number}} – {{name}}",
+    "assignedTo": "Assigned to {{name}} on {{date}}",
+    "mapLabel": "Territory map",
+    "resetView": "Show the whole territory",
+    "myPosition": "My location",
+    "locate": {
+      "denied": "Location unavailable: allow location access in your browser settings.",
+      "unsupported": "This device does not support geolocation."
+    },
+    "mapUnavailable": "The map is not available right now.",
+    "retry": "Retry",
+    "loadError": "Unable to load the territory. Check your connection and try again.",
+    "return": "Return territory",
+    "returnTitle": "Return the territory?",
+    "returnMessage": "Do you confirm returning territory {{number}} – {{name}}? After confirming, this link will stop working.",
+    "returnConfirm": "Return",
+    "thanksTitle": "Thank you!",
+    "heldFor": "You kept the territory for",
+    "and": "and",
+    "months": {
+      "one": "{{count}} month",
+      "other": "{{count}} months"
+    },
+    "days": {
+      "one": "{{count}} day",
+      "other": "{{count}} days"
+    },
+    "returnedOn": "Returned on {{date}}",
+    "invalidTitle": "This link is not valid",
+    "invalidHint": "The territory may have already been returned or the link was replaced. Ask whoever assigned the territory for a new link."
+  },
+  "export": {
+    "hint": "Download the territory register: the current status and the assignment history.",
+    "municipality": "Municipality",
+    "allMunicipalities": "All municipalities",
+    "from": "From",
+    "to": "To",
+    "periodHint": "Without dates the whole history is exported. With a period, assignments active on at least one day of the period are included.",
+    "periodOrder": "The end date cannot precede the start date.",
+    "excel": "Excel",
+    "word": "Word",
+    "s13Title": "S-13 register",
+    "s13Hint": "Download the official S-13 registers of a service year in a single Word file: one page per municipality (more pages when more rows or columns are needed), with the assignments started in the service year.",
+    "serviceYear": "Service year",
+    "serviceYearHint": "From September of the previous year to August",
+    "serviceYearInvalid": "Enter a four-digit year between 2001 and 2100.",
+    "s13": "Export S-13"
+  }
+}

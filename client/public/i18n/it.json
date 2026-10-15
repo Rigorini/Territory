@@ -1,0 +1,348 @@
+{
+  "app": {
+    "title": "Registro Territori"
+  },
+  "account": {
+    "changePassword": "Cambia password",
+    "changePasswordTitle": "Cambia la tua password",
+    "currentPassword": "Password attuale",
+    "mustChangeTitle": "Scegli la tua password",
+    "mustChangeNotice": "Il tuo account è stato appena creato: per continuare scegli una nuova password personale.",
+    "passwordChanged": "Password aggiornata"
+  },
+  "nav": {
+    "admins": "Utenti",
+    "territories": "Territori",
+    "publishers": "Proclamatori",
+    "assignments": "Assegnazioni",
+    "export": "Export registro",
+    "backup": "Backup"
+  },
+  "backup": {
+    "exportTitle": "Esporta backup",
+    "exportHint": "Scarica un file .ter (archivio zip) con proclamatori, territori e assegnazioni (gli utenti sono esclusi). I nomi sono salvati in chiaro: conserva il file in un luogo sicuro.",
+    "exportAction": "Esporta backup",
+    "importTitle": "Importa backup",
+    "importWarning": "Attenzione: l'importazione sovrascrive tutti i dati esistenti (comuni, territori, proclamatori e assegnazioni). L'operazione non può essere annullata.",
+    "importAction": "Scegli file e importa",
+    "confirmTitle": "Sovrascrivere i dati?",
+    "confirmMessage": "Tutti i dati attuali di comuni, territori, proclamatori e assegnazioni saranno eliminati e sostituiti con il contenuto di «{{file}}». Vuoi continuare?",
+    "confirmAction": "Sovrascrivi",
+    "imported": "Backup importato: {{municipalities}} comuni, {{territories}} territori, {{publishers}} proclamatori, {{assignments}} assegnazioni."
+  },
+  "prefs": {
+    "title": "Preferenze",
+    "theme": "Tema",
+    "themes": {
+      "system": "Sistema",
+      "light": "Chiaro",
+      "dark": "Scuro"
+    },
+    "language": "Lingua",
+    "languages": {
+      "en": "English",
+      "it": "Italiano"
+    }
+  },
+  "auth": {
+    "logout": "Esci"
+  },
+  "login": {
+    "subtitle": "Accesso utenti",
+    "username": "Nome utente",
+    "password": "Password",
+    "submit": "Accedi",
+    "showPassword": "Mostra password",
+    "hidePassword": "Nascondi password"
+  },
+  "setup": {
+    "subtitle": "Configurazione iniziale",
+    "intro": "Non esiste ancora nessun utente. Inserisci i dati del primo utente: verrà creato con la configurazione necessaria e potrai accedere subito.",
+    "submit": "Crea utente"
+  },
+  "admins": {
+    "add": "Nuovo utente",
+    "addTitle": "Nuovo utente",
+    "editTitle": "Modifica utente",
+    "displayName": "Nome e cognome",
+    "displayNameHint": "Nome della persona, mostrato nello storico",
+    "role": "Ruolo",
+    "roles": { "1": "Amministratore", "2": "Responsabile", "3": "Assegnatore" },
+    "roleHint": {
+      "1": "Accesso completo",
+      "2": "Assegna territori, gestisce i proclamatori, esporta il registro e fa i backup (senza import)",
+      "3": "Può solo assegnare i territori"
+    },
+    "username": "Nome utente",
+    "usernameHint": "3-50 caratteri: lettere, numeri, . _ -",
+    "password": "Password",
+    "newPassword": "Nuova password",
+    "keepPasswordHint": "Lascia vuoto per mantenere la password attuale",
+    "confirmPassword": "Conferma password",
+    "passwordRules": "Requisiti password",
+    "rules": {
+      "tooShort": "Almeno 12 caratteri",
+      "tooLong": "Al massimo 128 caratteri",
+      "missingUppercase": "Una lettera maiuscola",
+      "missingLowercase": "Una lettera minuscola",
+      "missingDigit": "Un numero",
+      "missingSymbol": "Un simbolo"
+    },
+    "createdAt": "Creato il",
+    "status": "Stato",
+    "statuses": {
+      "active": "Attivo",
+      "locked": "Bloccato"
+    },
+    "you": "tu",
+    "created": "Utente creato",
+    "updated": "Utente aggiornato",
+    "deleted": "Utente eliminato",
+    "deleteTitle": "Eliminare l'utente?",
+    "deleteMessage": "L'account \"{{username}}\" verrà eliminato definitivamente e le sue sessioni chiuse."
+  },
+  "territories": {
+    "tab": "Territori",
+    "add": "Nuovo territorio",
+    "addTitle": "Nuovo territorio",
+    "editTitle": "Modifica territorio",
+    "municipality": "Comune",
+    "number": "Numero",
+    "name": "Nome",
+    "map": "Mappa",
+    "mapUrl": "Link Google MyMaps",
+    "mapUrlHint": "Es. https://www.google.com/maps/d/edit?mid=…",
+    "openMap": "Apri la mappa in una nuova scheda",
+    "needMunicipality": "Crea prima un comune",
+    "created": "Territorio creato",
+    "updated": "Territorio aggiornato",
+    "deleted": "Territorio eliminato",
+    "confirmSaveTitle": "Salvare il territorio?",
+    "confirmSaveMessage": "Territorio {{number}} - {{name}} ({{municipality}}).",
+    "deleteTitle": "Eliminare il territorio?",
+    "deleteMessage": "Il territorio {{number}} - {{name}} verrà eliminato.",
+    "deleteHistoryTitle": "Eliminare anche lo storico?",
+    "deleteHistoryMessage": "Il territorio ha {{count}} assegnazioni registrate: verranno eliminate definitivamente dal registro.",
+    "deleteHistoryConfirm": "Elimina tutto"
+  },
+  "municipalities": {
+    "tab": "Comuni",
+    "add": "Nuovo comune",
+    "addTitle": "Nuovo comune",
+    "editTitle": "Modifica comune",
+    "name": "Nome",
+    "territoryCount": "Territori",
+    "created": "Comune creato",
+    "updated": "Comune aggiornato",
+    "deleted": "Comune eliminato",
+    "deleteTitle": "Eliminare il comune?",
+    "deleteMessage": "Il comune \"{{name}}\" verrà eliminato.",
+    "cannotDelete": "Non eliminabile: contiene territori"
+  },
+  "publishers": {
+    "add": "Nuovo proclamatore",
+    "addTitle": "Nuovo proclamatore",
+    "editTitle": "Modifica proclamatore",
+    "firstName": "Nome",
+    "lastName": "Cognome",
+    "created": "Proclamatore creato",
+    "updated": "Proclamatore aggiornato",
+    "reactivated": "Proclamatore già presente in passato: è stato riattivato",
+    "deleted": "Proclamatore eliminato",
+    "confirmSaveTitle": "Salvare il proclamatore?",
+    "confirmSaveMessage": "{{lastName}} {{firstName}}",
+    "deleteTitle": "Eliminare il proclamatore?",
+    "deleteMessage": "{{lastName}} {{firstName}} non sarà più selezionabile; lo storico delle assegnazioni resta nel registro."
+  },
+  "common": {
+    "menu": "Menu",
+    "dateHint": "gg/mm/aaaa",
+    "cancel": "Annulla",
+    "confirm": "Conferma",
+    "save": "Salva",
+    "edit": "Modifica",
+    "delete": "Elimina",
+    "actions": "Azioni",
+    "filters": "Filtri",
+    "filterBy": "Filtra per {{column}}",
+    "clearFilters": "Azzera",
+    "all": "Tutti",
+    "noResults": "Nessun risultato",
+    "close": "Chiudi",
+    "loading": "Caricamento…"
+  },
+  "errors": {
+    "notFound": "Pagina non trovata",
+    "fields": {
+      "required": "Campo obbligatorio",
+      "invalidFormat": "Formato non valido",
+      "passwordMismatch": "Le password non coincidono",
+      "invalidBackup": "File di backup non valido o danneggiato.",
+      "unsupportedVersion": "Versione del backup non supportata.",
+      "invalidValues": "Il backup contiene valori non validi.",
+      "duplicateEntries": "Il backup contiene elementi duplicati.",
+      "brokenReference": "Il backup contiene riferimenti a elementi inesistenti.",
+      "invalidAssignments": "Il backup contiene assegnazioni incoerenti.",
+      "usernameTaken": "Nome utente già in uso",
+      "tooShort": "Almeno 12 caratteri",
+      "tooLong": "Al massimo 128 caratteri",
+      "missingUppercase": "Manca una lettera maiuscola",
+      "missingLowercase": "Manca una lettera minuscola",
+      "missingDigit": "Manca un numero",
+      "missingSymbol": "Manca un simbolo",
+      "maxLength": "Testo troppo lungo",
+      "outOfRange": "Valore fuori intervallo (1-9999)",
+      "notFound": "Elemento non trovato",
+      "numberTaken": "Numero già usato in questo comune",
+      "nameTaken": "Nome già in uso",
+      "invalidMapUrl": "Inserisci un link Google MyMaps (https://www.google.com/maps/d/…?mid=…)",
+      "inFuture": "La data non può essere futura",
+      "invalidDate": "Data non valida: usa gg/mm/aaaa",
+      "beforeLastReturn": "Data precedente all'ultima riconsegna",
+      "beforeAssigned": "Data precedente all'assegnazione",
+      "afterNextAssignment": "Data successiva all'assegnazione seguente",
+      "wrongPassword": "Password non corretta"
+    },
+    "codes": {
+      "generic": "Si è verificato un errore. Riprova.",
+      "network": "Impossibile contattare il server.",
+      "tooManyRequests": "Troppi tentativi. Attendi qualche minuto.",
+      "validation": "Controlla i dati inseriti.",
+      "backup": {
+        "confirmRequired": "Conferma la sovrascrittura per importare il backup."
+      },
+      "auth": {
+        "invalidCredentials": "Credenziali non valide o account temporaneamente bloccato.",
+        "antiforgery": "Sessione scaduta: ricarica la pagina.",
+        "passwordChangeRequired": "Devi prima cambiare la password."
+      },
+      "admins": {
+        "usernameTaken": "Nome utente già in uso.",
+        "notFound": "Utente non trovato.",
+        "cannotDeleteSelf": "Non puoi eliminare il tuo account.",
+        "cannotChangeOwnRole": "Non puoi modificare il tuo stesso ruolo."
+      },
+      "municipalities": {
+        "nameTaken": "Esiste già un comune con questo nome.",
+        "notFound": "Comune non trovato.",
+        "hasTerritories": "Il comune contiene territori: eliminali o spostali prima."
+      },
+      "territories": {
+        "numberTaken": "Numero già usato in questo comune.",
+        "notFound": "Territorio non trovato.",
+        "hasAssignments": "Il territorio ha assegnazioni: conferma l'eliminazione dello storico."
+      },
+      "publishers": {
+        "duplicate": "Esiste già un proclamatore con questo nome.",
+        "duplicateDeleted": "Questo nome appartiene a un proclamatore eliminato: crealo di nuovo per riattivarlo.",
+        "notFound": "Proclamatore non trovato.",
+        "hasOpenAssignment": "Il proclamatore ha un territorio assegnato: registra prima la riconsegna."
+      },
+      "assignments": {
+        "notFound": "Assegnazione non trovata.",
+        "alreadyAssigned": "Il territorio è già assegnato.",
+        "alreadyReturned": "Il territorio è già stato riconsegnato."
+      },
+      "public": {
+        "invalidLink": "Questo link non è valido.",
+        "mapUnavailable": "La mappa non è disponibile al momento."
+      }
+    }
+  },
+  "assignments": {
+    "status": "Stato",
+    "statuses": {
+      "assigned": "Assegnato",
+      "available": "Disponibile"
+    },
+    "publisher": "Proclamatore",
+    "date": "Data",
+    "assignedAt": "Data assegnazione",
+    "returnedAt": "Data riconsegna",
+    "lastReturnedAt": "Ultima riconsegna",
+    "frequency": "Ogni (media)",
+    "frequencyHint": "Intervallo medio tra le assegnazioni del territorio nell'ultimo anno (m = mesi di 30 giorni, g = giorni)",
+    "frequencyValue": "{{months}} m {{days}} g",
+    "returnedBy": "Riconsegnato da",
+    "returnedByValues": {
+      "publisher": "Proclamatore (link)",
+      "admin": "Amministratore"
+    },
+    "assign": "Assegna",
+    "assignTitle": "Assegna il territorio {{number}} – {{name}}",
+    "assigned": "Territorio assegnato.",
+    "noPublishers": "Nessun proclamatore attivo: aggiungine uno prima.",
+    "share": "Condividi link",
+    "renewTitle": "Nuovo link di condivisione",
+    "renewMessage": "Per condividere il territorio {{number}} – {{name}} ({{publisher}}) verrà creato un nuovo link: quello inviato in precedenza smetterà di funzionare.",
+    "renewConfirm": "Crea nuovo link",
+    "shareTitle": "Condividi il territorio {{number}} – {{name}}",
+    "shareHint": "Il link è segreto e valido fino alla riconsegna. Invialo solo al proclamatore assegnatario: non sarà più mostrato.",
+    "shareText": "Territorio {{number}} – {{name}} ({{municipality}})",
+    "shareSystem": "Condividi…",
+    "shareFailed": "Condivisione non riuscita.",
+    "copyLink": "Copia link",
+    "copied": "Link copiato negli appunti.",
+    "copyFailed": "Impossibile copiare il link.",
+    "registerReturn": "Registra riconsegna",
+    "returnTitle": "Registra riconsegna",
+    "returnMessage": "Territorio {{number}} – {{name}}, assegnato a {{publisher}}.",
+    "returned": "Riconsegna registrata.",
+    "history": "Storico assegnazioni",
+    "historyTitle": "Storico del territorio {{number}} – {{name}}",
+    "historyEmpty": "Nessuna assegnazione registrata.",
+    "editDates": "Modifica date",
+    "editDatesTitle": "Modifica date",
+    "editDatesMessage": "Territorio {{number}} – {{name}}, assegnato a {{publisher}}.",
+    "datesUpdated": "Date aggiornate."
+  },
+  "public": {
+    "territoryTitle": "Territorio {{number}} – {{name}}",
+    "assignedTo": "Assegnato a {{name}} il {{date}}",
+    "mapLabel": "Mappa del territorio",
+    "resetView": "Mostra tutto il territorio",
+    "myPosition": "La mia posizione",
+    "locate": {
+      "denied": "Posizione non disponibile: consenti l'accesso alla posizione nelle impostazioni del browser.",
+      "unsupported": "Questo dispositivo non supporta la geolocalizzazione."
+    },
+    "mapUnavailable": "La mappa non è disponibile al momento.",
+    "retry": "Riprova",
+    "loadError": "Impossibile caricare il territorio. Controlla la connessione e riprova.",
+    "return": "Riconsegna territorio",
+    "returnTitle": "Riconsegnare il territorio?",
+    "returnMessage": "Confermi la riconsegna del territorio {{number}} – {{name}}? Dopo la conferma questo link non funzionerà più.",
+    "returnConfirm": "Riconsegna",
+    "thanksTitle": "Grazie!",
+    "heldFor": "Hai tenuto il territorio per",
+    "and": "e",
+    "months": {
+      "one": "{{count}} mese",
+      "other": "{{count}} mesi"
+    },
+    "days": {
+      "one": "{{count}} giorno",
+      "other": "{{count}} giorni"
+    },
+    "returnedOn": "Riconsegnato il {{date}}",
+    "invalidTitle": "Questo link non è valido",
+    "invalidHint": "Il territorio potrebbe essere già stato riconsegnato oppure il link è stato sostituito. Chiedi un nuovo link a chi ti ha assegnato il territorio."
+  },
+  "export": {
+    "hint": "Scarica il registro dei territori: lo stato attuale e lo storico delle assegnazioni.",
+    "municipality": "Comune",
+    "allMunicipalities": "Tutti i comuni",
+    "from": "Dal",
+    "to": "Al",
+    "periodHint": "Senza date viene esportato tutto lo storico. Con un periodo sono incluse le assegnazioni attive in almeno un giorno del periodo.",
+    "periodOrder": "La data finale non può precedere quella iniziale.",
+    "excel": "Excel",
+    "word": "Word",
+    "s13Title": "Registro S-13",
+    "s13Hint": "Scarica in un unico file Word i registri ufficiali S-13 dell'anno di servizio: una pagina per ogni comune (più pagine se servono più righe o colonne), con le assegnazioni iniziate nell'anno di servizio.",
+    "serviceYear": "Anno di servizio",
+    "serviceYearHint": "Da settembre dell'anno precedente ad agosto",
+    "serviceYearInvalid": "Inserisci un anno di quattro cifre tra 2001 e 2100.",
+    "s13": "Esporta S-13"
+  }
+}

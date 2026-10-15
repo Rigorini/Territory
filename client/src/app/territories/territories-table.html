@@ -1,0 +1,88 @@
+<div class="table-toolbar">
+  <button mat-stroked-button class="mobile-only" (click)="filtersOpen.set(!filtersOpen())" [attr.aria-expanded]="filtersOpen()">
+    <mat-icon>filter_list</mat-icon>{{ 'common.filters' | translate }}
+  </button>
+  <button mat-flat-button (click)="openDialog()" [disabled]="municipalities().length === 0"
+          [matTooltip]="municipalities().length === 0 ? ('territories.needMunicipality' | translate) : ''">
+    <mat-icon>add_location_alt</mat-icon>{{ 'territories.add' | translate }}
+  </button>
+</div>
+
+<div class="table-wrap">
+  <table mat-table [dataSource]="table.rows()" matSort matSortActive="municipality" matSortDirection="asc"
+         (matSortChange)="table.onSort($event)" class="responsive-table" [class.filters-open]="filtersOpen()">
+
+    <ng-container matColumnDef="municipality">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'territories.municipality' | translate }}</th>
+      <td mat-cell *matCellDef="let t" [attr.data-label]="'territories.municipality' | translate">{{ t.municipalityName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="number">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'territories.number' | translate }}</th>
+      <td mat-cell *matCellDef="let t" [attr.data-label]="'territories.number' | translate">{{ t.number }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'territories.name' | translate }}</th>
+      <td mat-cell *matCellDef="let t" [attr.data-label]="'territories.name' | translate">{{ t.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="map">
+      <th mat-header-cell *matHeaderCellDef>{{ 'territories.map' | translate }}</th>
+      <td mat-cell *matCellDef="let t" [attr.data-label]="'territories.map' | translate">
+        <a mat-icon-button class="act-map" [href]="t.mapUrl" target="_blank" rel="noopener noreferrer"
+           [matTooltip]="'territories.openMap' | translate" [attr.aria-label]="'territories.openMap' | translate">
+          <mat-icon>open_in_new</mat-icon>
+        </a>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef><span class="sr-only">{{ 'common.actions' | translate }}</span></th>
+      <td mat-cell *matCellDef="let t" class="actions">
+        <button mat-icon-button class="act-edit" (click)="openDialog(t)" [matTooltip]="'common.edit' | translate"
+                [attr.aria-label]="'common.edit' | translate">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button class="act-delete" (click)="confirmDelete(t)" [matTooltip]="'common.delete' | translate"
+                [attr.aria-label]="'common.delete' | translate">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="f-municipality">
+      <th mat-header-cell *matHeaderCellDef>
+        <app-column-filter [label]="'territories.municipality' | translate" [value]="table.filter('municipality')"
+                           [options]="municipalityOptions()" (valueChange)="table.setFilter('municipality', $event)" />
+      </th>
+    </ng-container>
+    <ng-container matColumnDef="f-number">
+      <th mat-header-cell *matHeaderCellDef>
+        <app-column-filter [label]="'territories.number' | translate" [value]="table.filter('number')"
+                           (valueChange)="table.setFilter('number', $event)" />
+      </th>
+    </ng-container>
+    <ng-container matColumnDef="f-name">
+      <th mat-header-cell *matHeaderCellDef>
+        <app-column-filter [label]="'territories.name' | translate" [value]="table.filter('name')"
+                           (valueChange)="table.setFilter('name', $event)" />
+      </th>
+    </ng-container>
+    <ng-container matColumnDef="f-map">
+      <th mat-header-cell *matHeaderCellDef></th>
+    </ng-container>
+    <ng-container matColumnDef="f-actions">
+      <th mat-header-cell *matHeaderCellDef>
+        <button mat-button (click)="table.clearFilters()" [disabled]="!table.hasFilters()">{{ 'common.clearFilters' | translate }}</button>
+      </th>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="columns" class="labels"></tr>
+    <tr mat-header-row *matHeaderRowDef="filterColumns" class="filters"></tr>
+    <tr mat-row *matRowDef="let row; columns: columns"></tr>
+    <tr class="mat-row no-data" *matNoDataRow>
+      <td class="mat-cell" [attr.colspan]="columns.length">{{ 'common.noResults' | translate }}</td>
+    </tr>
+  </table>
+</div>

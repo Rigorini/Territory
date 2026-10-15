@@ -1,0 +1,27 @@
+<h2 mat-dialog-title>{{ 'assignments.shareTitle' | translate: { number: data.territory.number, name: data.territory.name } }}</h2>
+
+<mat-dialog-content>
+  <p>{{ 'assignments.shareHint' | translate }}</p>
+  <p class="link"><code>{{ url }}</code></p>
+
+  <div class="share-actions">
+    @if (canShare) {
+      <button mat-flat-button type="button" (click)="share()">
+        <mat-icon>share</mat-icon>{{ 'assignments.shareSystem' | translate }}
+      </button>
+    }
+    <a mat-stroked-button [href]="whatsApp" target="_blank" rel="noopener noreferrer">
+      <mat-icon>chat</mat-icon>WhatsApp
+    </a>
+    <a mat-stroked-button [href]="telegram" target="_blank" rel="noopener noreferrer">
+      <mat-icon>send</mat-icon>Telegram
+    </a>
+    <button mat-stroked-button type="button" (click)="copy()">
+      <mat-icon>content_copy</mat-icon>{{ 'assignments.copyLink' | translate }}
+    </button>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close>{{ 'common.close' | translate }}</button>
+</mat-dialog-actions>

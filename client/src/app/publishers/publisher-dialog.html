@@ -1,0 +1,36 @@
+<h2 mat-dialog-title>{{ (data.publisher ? 'publishers.editTitle' : 'publishers.addTitle') | translate }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <mat-dialog-content class="fields">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'publishers.lastName' | translate }}</mat-label>
+      <input matInput formControlName="lastName" autocomplete="off" [maxlength]="maxLength" required cdkFocusInitial />
+      @if (form.controls.lastName.hasError('required')) {
+        <mat-error>{{ 'errors.fields.required' | translate }}</mat-error>
+      }
+      @for (code of serverErrors('lastName'); track code) {
+        <mat-error>{{ 'errors.fields.' + code | translate }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'publishers.firstName' | translate }}</mat-label>
+      <input matInput formControlName="firstName" autocomplete="off" [maxlength]="maxLength" required />
+      @if (form.controls.firstName.hasError('required')) {
+        <mat-error>{{ 'errors.fields.required' | translate }}</mat-error>
+      }
+      @for (code of serverErrors('firstName'); track code) {
+        <mat-error>{{ 'errors.fields.' + code | translate }}</mat-error>
+      }
+    </mat-form-field>
+
+    @if (errorKey(); as key) {
+      <p class="error" role="alert">{{ key | translate }}</p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
+    <button mat-flat-button type="submit" [disabled]="busy()">{{ 'common.save' | translate }}</button>
+  </mat-dialog-actions>
+</form>

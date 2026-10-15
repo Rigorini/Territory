@@ -1,0 +1,36 @@
+<div class="page-head">
+  <h2>{{ 'nav.backup' | translate }}</h2>
+</div>
+
+@if (busy()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+<section class="backup-section">
+  <h3>{{ 'backup.exportTitle' | translate }}</h3>
+  <p class="hint">{{ 'backup.exportHint' | translate }}</p>
+  <div class="actions">
+    <button mat-flat-button type="button" (click)="export()" [disabled]="busy()">
+      <mat-icon>download</mat-icon>{{ 'backup.exportAction' | translate }}
+    </button>
+  </div>
+</section>
+
+@if (auth.hasRole(administratorOnly)) {
+<section class="backup-section">
+  <h3>{{ 'backup.importTitle' | translate }}</h3>
+  <p class="warning" role="alert">
+    <mat-icon>warning</mat-icon>
+    <span>{{ 'backup.importWarning' | translate }}</span>
+  </p>
+  @if (importErrorKey(); as key) {
+    <p class="error" role="alert">{{ key | translate }}</p>
+  }
+  <input #picker class="file-input" type="file" accept=".ter" (change)="import(picker)" />
+  <div class="actions">
+    <button mat-stroked-button type="button" (click)="picker.click()" [disabled]="busy()">
+          <mat-icon>upload</mat-icon>{{ 'backup.importAction' | translate }}
+        </button>
+      </div>
+</section>
+}

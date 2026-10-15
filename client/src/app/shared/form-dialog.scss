@@ -1,0 +1,38 @@
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: min(420px, 80vw);
+  padding-top: 8px !important;
+}
+
+.hints {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .ok {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.error {
+  margin: 0;
+  color: var(--mat-sys-error);
+}

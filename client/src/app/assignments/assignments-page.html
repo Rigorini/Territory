@@ -1,0 +1,140 @@
+<div class="page-head">
+  <h2>{{ 'nav.assignments' | translate }}</h2>
+  <button mat-stroked-button class="mobile-only" (click)="filtersOpen.set(!filtersOpen())" [attr.aria-expanded]="filtersOpen()">
+    <mat-icon>filter_list</mat-icon>{{ 'common.filters' | translate }}
+  </button>
+</div>
+
+@if (statuses.loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+<div class="table-wrap">
+  <table mat-table [dataSource]="table.rows()" matSort matSortActive="municipality" matSortDirection="asc"
+         (matSortChange)="table.onSort($event)" class="responsive-table" [class.filters-open]="filtersOpen()">
+
+    <ng-container matColumnDef="municipality">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'territories.municipality' | translate }}</th>
+      <td mat-cell *matCellDef="let s" [attr.data-label]="'territories.municipality' | translate">{{ s.municipalityName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="number">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'territories.number' | translate }}</th>
+      <td mat-cell *matCellDef="let s" [attr.data-label]="'territories.number' | translate">{{ s.number }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'territories.name' | translate }}</th>
+      <td mat-cell *matCellDef="let s" [attr.data-label]="'territories.name' | translate">{{ s.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'assignments.status' | translate }}</th>
+      <td mat-cell *matCellDef="let s" [attr.data-label]="'assignments.status' | translate">
+        <span class="chip" [class]="status(s)">{{ 'assignments.statuses.' + status(s) | translate }}</span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="publisher">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'assignments.publisher' | translate }}</th>
+      <td mat-cell *matCellDef="let s" [attr.data-label]="'assignments.publisher' | translate">{{ s.assignment?.publisherName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="date">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'assignments.date' | translate }}</th>
+      <td mat-cell *matCellDef="let s" [attr.data-label]="'assignments.date' | translate">
+        @if (date(s); as d) {
+          <span [title]="(s.assignment ? 'assignments.assignedAt' : 'assignments.lastReturnedAt') | translate">{{ d }}</span>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="frequency">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [matTooltip]="'assignments.frequencyHint' | translate">{{ 'assignments.frequency' | translate }}</th>
+      <td mat-cell *matCellDef="let s" [attr.data-label]="'assignments.frequency' | translate">
+        @if (frequency(s); as f) {
+          {{ 'assignments.frequencyValue' | translate: f }}
+        } @else {
+          &mdash;
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef><span class="sr-only">{{ 'common.actions' | translate }}</span></th>
+      <td mat-cell *matCellDef="let s" class="actions">
+        @if (s.assignment; as a) {
+          <button mat-icon-button class="act-share" (click)="share(s, a)" [matTooltip]="'assignments.share' | translate"
+                  [attr.aria-label]="'assignments.share' | translate">
+            <mat-icon>share</mat-icon>
+          </button>
+          <button mat-icon-button class="act-return" (click)="registerReturn(s, a)" [matTooltip]="'assignments.registerReturn' | translate"
+                  [attr.aria-label]="'assignments.registerReturn' | translate">
+            <mat-icon>assignment_return</mat-icon>
+          </button>
+        } @else {
+          <button mat-icon-button class="act-assign" (click)="assign(s)" [matTooltip]="'assignments.assign' | translate"
+                  [attr.aria-label]="'assignments.assign' | translate">
+            <mat-icon>person_add</mat-icon>
+          </button>
+        }
+        <button mat-icon-button class="act-history" (click)="showHistory(s)" [matTooltip]="'assignments.history' | translate"
+                [attr.aria-label]="'assignments.history' | translate">
+          <mat-icon>history</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="f-municipality">
+      <th mat-header-cell *matHeaderCellDef>
+        <app-column-filter [label]="'territories.municipality' | translate" [value]="table.filter('municipality')"
+                           [options]="municipalityOptions()" (valueChange)="table.setFilter('municipality', $event)" />
+      </th>
+    </ng-container>
+    <ng-container matColumnDef="f-number">
+      <th mat-header-cell *matHeaderCellDef>
+        <app-column-filter [label]="'territories.number' | translate" [value]="table.filter('number')"
+                           (valueChange)="table.setFilter('number', $event)" />
+      </th>
+    </ng-container>
+    <ng-container matColumnDef="f-name">
+      <th mat-header-cell *matHeaderCellDef>
+        <app-column-filter [label]="'territories.name' | translate" [value]="table.filter('name')"
+                           (valueChange)="table.setFilter('name', $event)" />
+      </th>
+    </ng-container>
+    <ng-container matColumnDef="f-status">
+      <th mat-header-cell *matHeaderCellDef>
+        <app-column-filter [label]="'assignments.status' | translate" [value]="table.filter('status')" [options]="statusOptions"
+                           (valueChange)="table.setFilter('status', $event)" />
+      </th>
+    </ng-container>
+    <ng-container matColumnDef="f-publisher">
+      <th mat-header-cell *matHeaderCellDef>
+        <app-column-filter [label]="'assignments.publisher' | translate" [value]="table.filter('publisher')"
+                           (valueChange)="table.setFilter('publisher', $event)" />
+      </th>
+    </ng-container>
+    <ng-container matColumnDef="f-date">
+      <th mat-header-cell *matHeaderCellDef>
+        <app-column-filter [label]="'assignments.date' | translate" [value]="table.filter('date')"
+                           (valueChange)="table.setFilter('date', $event)" />
+      </th>
+    </ng-container>
+    <ng-container matColumnDef="f-frequency">
+      <th mat-header-cell *matHeaderCellDef></th>
+    </ng-container>
+    <ng-container matColumnDef="f-actions">
+      <th mat-header-cell *matHeaderCellDef>
+        <button mat-button (click)="table.clearFilters()" [disabled]="!table.hasFilters()">{{ 'common.clearFilters' | translate }}</button>
+      </th>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="columns" class="labels"></tr>
+    <tr mat-header-row *matHeaderRowDef="filterColumns" class="filters"></tr>
+    <tr mat-row *matRowDef="let row; columns: columns"></tr>
+    <tr class="mat-row no-data" *matNoDataRow>
+      <td class="mat-cell" [attr.colspan]="columns.length">{{ 'common.noResults' | translate }}</td>
+    </tr>
+  </table>
+</div>

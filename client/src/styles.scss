@@ -1,0 +1,61 @@
+@use '@angular/material' as mat;
+@use 'list-page';
+
+html {
+  height: 100%;
+  // System preference by default; ThemeService overrides it with the .theme-light/.theme-dark classes.
+  color-scheme: light dark;
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+
+  &.theme-light {
+    color-scheme: light;
+  }
+
+  &.theme-dark {
+    color-scheme: dark;
+  }
+}
+
+body {
+  background-color: var(--mat-sys-surface-container-lowest);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  margin: 0;
+  height: 100%;
+}
+
+// Row action buttons: 48px touch target, larger icon, one colour per action (WCAG AA contrast on light and dark surfaces).
+.mat-mdc-icon-button[class*='act-'] {
+  --mat-icon-button-state-layer-size: 48px;
+  --mat-icon-button-icon-size: 28px;
+  width: 48px;
+  height: 48px;
+  padding: 10px;
+
+  .mat-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 28px;
+  }
+}
+
+.act-edit { --mat-icon-button-icon-color: light-dark(#0b57d0, #a8c7fa); }
+.act-delete { --mat-icon-button-icon-color: light-dark(#b3261e, #f2b8b5); }
+.act-share { --mat-icon-button-icon-color: light-dark(#00687a, #4fd8eb); }
+.act-return { --mat-icon-button-icon-color: light-dark(#9a4400, #ffb77c); }
+.act-assign { --mat-icon-button-icon-color: light-dark(#1b6b2f, #8fd99b); }
+.act-history { --mat-icon-button-icon-color: light-dark(#6750a4, #cfbcff); }
+.act-map { --mat-icon-button-icon-color: light-dark(#4b6300, #b9d36c); }
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}

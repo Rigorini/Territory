@@ -1,0 +1,73 @@
+<main class="wrap">
+  <mat-card class="card" appearance="outlined">
+    @if (busy()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="logo">map</mat-icon>
+      <mat-card-title>{{ 'app.title' | translate }}</mat-card-title>
+      <mat-card-subtitle>{{ 'setup.subtitle' | translate }}</mat-card-subtitle>
+    </mat-card-header>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <mat-card-content class="fields">
+        <p class="intro">{{ 'setup.intro' | translate }}</p>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'admins.displayName' | translate }}</mat-label>
+          <input matInput formControlName="displayName" autocomplete="name" [maxlength]="maxDisplayNameLength" required />
+          <mat-hint>{{ 'admins.displayNameHint' | translate }}</mat-hint>
+          @if (form.controls.displayName.hasError('required') || form.controls.displayName.hasError('pattern')) {
+            <mat-error>{{ 'errors.fields.required' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'admins.username' | translate }}</mat-label>
+          <input matInput formControlName="username" autocomplete="username" maxlength="50" required />
+          <mat-hint>{{ 'admins.usernameHint' | translate }}</mat-hint>
+          @if (form.controls.username.hasError('required')) {
+            <mat-error>{{ 'errors.fields.required' | translate }}</mat-error>
+          } @else if (form.controls.username.hasError('pattern')) {
+            <mat-error>{{ 'errors.fields.invalidFormat' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'admins.password' | translate }}</mat-label>
+          <input matInput type="password" formControlName="password" autocomplete="new-password"
+                 [maxlength]="maxPasswordLength" required />
+          @if (form.controls.password.hasError('required')) {
+            <mat-error>{{ 'errors.fields.required' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'admins.confirmPassword' | translate }}</mat-label>
+          <input matInput type="password" formControlName="confirmPassword" autocomplete="new-password"
+                 [maxlength]="maxPasswordLength" required />
+          @if (form.controls.confirmPassword.hasError('mismatch')) {
+            <mat-error>{{ 'errors.fields.passwordMismatch' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <ul class="hints" [attr.aria-label]="'admins.passwordRules' | translate">
+          @for (hint of hints(); track hint.code) {
+            <li [class.ok]="hint.satisfied">
+              <mat-icon>{{ hint.satisfied ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+              {{ 'admins.rules.' + hint.code | translate }}
+            </li>
+          }
+        </ul>
+
+        @if (errorKey(); as key) {
+          <p class="error" role="alert">{{ key | translate }}</p>
+        }
+      </mat-card-content>
+
+      <mat-card-actions align="end">
+        <button mat-flat-button type="submit" [disabled]="busy()">{{ 'setup.submit' | translate }}</button>
+      </mat-card-actions>
+    </form>
+  </mat-card>
+</main>

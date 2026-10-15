@@ -1,0 +1,89 @@
+<h2 mat-dialog-title>{{ (isEdit ? 'admins.editTitle' : 'admins.addTitle') | translate }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <mat-dialog-content class="fields">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'admins.displayName' | translate }}</mat-label>
+      <input matInput formControlName="displayName" autocomplete="off" [maxlength]="maxDisplayNameLength" required cdkFocusInitial />
+      <mat-hint>{{ 'admins.displayNameHint' | translate }}</mat-hint>
+      @if (form.controls.displayName.hasError('required') || form.controls.displayName.hasError('pattern')) {
+        <mat-error>{{ 'errors.fields.required' | translate }}</mat-error>
+      } @else if (form.controls.displayName.hasError('maxlength')) {
+        <mat-error>{{ 'errors.fields.maxLength' | translate }}</mat-error>
+      }
+      @for (code of serverErrors('displayName'); track code) {
+        <mat-error>{{ 'errors.fields.' + code | translate }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'admins.username' | translate }}</mat-label>
+      <input matInput formControlName="username" autocomplete="off" maxlength="50" required />
+      <mat-hint>{{ 'admins.usernameHint' | translate }}</mat-hint>
+      @if (form.controls.username.hasError('required')) {
+        <mat-error>{{ 'errors.fields.required' | translate }}</mat-error>
+      } @else if (form.controls.username.hasError('pattern')) {
+        <mat-error>{{ 'errors.fields.invalidFormat' | translate }}</mat-error>
+      }
+      @for (code of serverErrors('username'); track code) {
+        <mat-error>{{ 'errors.fields.' + code | translate }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'admins.role' | translate }}</mat-label>
+      <mat-select formControlName="role">
+        @for (r of roles; track r) {
+          <mat-option [value]="r">{{ 'admins.roles.' + r | translate }}</mat-option>
+        }
+      </mat-select>
+      <mat-hint>{{ 'admins.roleHint.' + form.controls.role.value | translate }}</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ (isEdit ? 'admins.newPassword' : 'admins.password') | translate }}</mat-label>
+      <input matInput type="password" formControlName="password" autocomplete="new-password"
+             [maxlength]="maxPasswordLength" [required]="!isEdit" />
+      @if (isEdit) {
+        <mat-hint>{{ 'admins.keepPasswordHint' | translate }}</mat-hint>
+      }
+      @if (form.controls.password.hasError('required')) {
+        <mat-error>{{ 'errors.fields.required' | translate }}</mat-error>
+      }
+      @for (code of serverErrors('password'); track code) {
+        <mat-error>{{ 'errors.fields.' + code | translate }}</mat-error>
+      }
+    </mat-form-field>
+
+    @if (showHints()) {
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'admins.confirmPassword' | translate }}</mat-label>
+        <input matInput type="password" formControlName="confirmPassword" autocomplete="new-password"
+               [maxlength]="maxPasswordLength" required />
+        @if (form.controls.confirmPassword.hasError('mismatch')) {
+          <mat-error>{{ 'errors.fields.passwordMismatch' | translate }}</mat-error>
+        }
+      </mat-form-field>
+    }
+
+    @if (showHints()) {
+      <ul class="hints" [attr.aria-label]="'admins.passwordRules' | translate">
+        @for (hint of hints(); track hint.code) {
+          <li [class.ok]="hint.satisfied">
+            <mat-icon>{{ hint.satisfied ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+            {{ 'admins.rules.' + hint.code | translate }}
+          </li>
+        }
+      </ul>
+    }
+
+    @if (errorKey(); as key) {
+      <p class="error" role="alert">{{ key | translate }}</p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
+    <button mat-flat-button type="submit" [disabled]="busy()">{{ 'common.save' | translate }}</button>
+  </mat-dialog-actions>
+</form>

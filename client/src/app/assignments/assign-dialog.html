@@ -1,0 +1,51 @@
+<h2 mat-dialog-title>{{ 'assignments.assignTitle' | translate: { number: data.territory.number, name: data.territory.name } }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <mat-dialog-content class="fields">
+    <p>{{ data.territory.municipalityName }}</p>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'assignments.publisher' | translate }}</mat-label>
+      <mat-select formControlName="publisherId" required>
+        @for (p of data.publishers; track p.id) {
+          <mat-option [value]="p.id">{{ p.lastName }} {{ p.firstName }}</mat-option>
+        }
+      </mat-select>
+      @if (form.controls.publisherId.hasError('required')) {
+        <mat-error>{{ 'errors.fields.required' | translate }}</mat-error>
+      }
+      @for (code of serverErrors('publisherId'); track code) {
+        <mat-error>{{ 'errors.fields.' + code | translate }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'assignments.assignedAt' | translate }}</mat-label>
+      <input matInput [matDatepicker]="assignedPicker" formControlName="assignedAt" [min]="minDay" [max]="today" required />
+      <mat-hint>{{ 'common.dateHint' | translate }}</mat-hint>
+      <mat-datepicker-toggle matIconSuffix [for]="assignedPicker" />
+      <mat-datepicker #assignedPicker />
+      @if (form.controls.assignedAt.hasError('matDatepickerParse')) {
+        <mat-error>{{ 'errors.fields.invalidDate' | translate }}</mat-error>
+      } @else {
+        @for (code of ['required', 'inFuture', 'beforeLastReturn']; track code) {
+          @if (form.controls.assignedAt.hasError(code)) {
+            <mat-error>{{ 'errors.fields.' + code | translate }}</mat-error>
+          }
+        }
+      }
+      @for (code of serverErrors('assignedAt'); track code) {
+        <mat-error>{{ 'errors.fields.' + code | translate }}</mat-error>
+      }
+    </mat-form-field>
+
+    @if (errorKey(); as key) {
+      <p class="error" role="alert">{{ key | translate }}</p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
+    <button mat-flat-button type="submit" [disabled]="busy()">{{ 'assignments.assign' | translate }}</button>
+  </mat-dialog-actions>
+</form>

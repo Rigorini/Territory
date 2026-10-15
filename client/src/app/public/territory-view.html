@@ -1,0 +1,102 @@
+@switch (state()) {
+  @case ('loading') {
+    <main class="center" aria-busy="true">
+      <mat-spinner diameter="48" [attr.aria-label]="'common.loading' | translate" />
+    </main>
+  }
+
+  @case ('ready') {
+    @if (territory(); as t) {
+      <main class="page">
+        <header class="summary">
+          <mat-icon class="logo" aria-hidden="true">map</mat-icon>
+          <div class="text">
+            <p class="municipality">{{ t.municipalityName }}</p>
+            <h1>{{ 'public.territoryTitle' | translate: { number: t.number, name: t.name } }}</h1>
+            <p class="meta">{{ 'public.assignedTo' | translate: { name: t.publisherName, date: date(t.assignedAt) } }}</p>
+          </div>
+        </header>
+
+        <section class="map-area">
+          @switch (mapState()) {
+            @case ('ready') {
+              <app-territory-map class="map" [map]="map()!" />
+            }
+            @case ('loading') {
+              <div class="center"><mat-spinner diameter="40" [attr.aria-label]="'common.loading' | translate" /></div>
+            }
+            @default {
+              <div class="center message" role="status">
+                <mat-icon aria-hidden="true">map</mat-icon>
+                <p>{{ 'public.mapUnavailable' | translate }}</p>
+                <button mat-stroked-button type="button" (click)="loadMap()">{{ 'public.retry' | translate }}</button>
+              </div>
+            }
+          }
+        </section>
+
+        <footer class="actions">
+          @if (returning()) {
+            <mat-progress-bar mode="indeterminate" />
+          }
+          <button mat-flat-button type="button" class="return" [disabled]="returning()" (click)="returnTerritory()">
+            <mat-icon>assignment_return</mat-icon>
+            {{ 'public.return' | translate }}
+          </button>
+        </footer>
+      </main>
+    }
+  }
+
+  @case ('returned') {
+    <main class="center">
+      <mat-card appearance="outlined" class="card">
+        <mat-card-content class="message">
+          <mat-icon class="big ok" aria-hidden="true">task_alt</mat-icon>
+          <h1>{{ 'public.thanksTitle' | translate }}</h1>
+          @if (held(); as h) {
+            <p>
+              {{ 'public.heldFor' | translate }}
+              <strong>
+                @if (h.months > 0) {
+                  {{ unitKey('public.months', h.months) | translate: { count: h.months } }}
+                }
+                @if (h.months > 0 && h.days > 0) {
+                  {{ 'public.and' | translate }}
+                }
+                @if (h.days > 0 || h.months === 0) {
+                  {{ unitKey('public.days', h.days) | translate: { count: h.days } }}
+                }
+              </strong>
+            </p>
+            <p class="meta">{{ 'public.returnedOn' | translate: { date: date(receipt()!.returnedAt) } }}</p>
+          }
+        </mat-card-content>
+      </mat-card>
+    </main>
+  }
+
+  @case ('invalid') {
+    <main class="center">
+      <mat-card appearance="outlined" class="card">
+        <mat-card-content class="message">
+          <mat-icon class="big" aria-hidden="true">link_off</mat-icon>
+          <h1>{{ 'public.invalidTitle' | translate }}</h1>
+          <p>{{ 'public.invalidHint' | translate }}</p>
+        </mat-card-content>
+      </mat-card>
+    </main>
+  }
+
+  @default {
+    <main class="center">
+      <mat-card appearance="outlined" class="card">
+        <mat-card-content class="message" role="alert">
+          <mat-icon class="big" aria-hidden="true">cloud_off</mat-icon>
+          <p>{{ 'public.loadError' | translate }}</p>
+          <button mat-stroked-button type="button" (click)="load()">{{ 'public.retry' | translate }}</button>
+        </mat-card-content>
+      </mat-card>
+    </main>
+  }
+}

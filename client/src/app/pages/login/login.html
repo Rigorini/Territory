@@ -1,0 +1,45 @@
+<main class="wrap">
+  <mat-card class="card" appearance="outlined">
+    @if (busy()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="logo">map</mat-icon>
+      <mat-card-title>{{ 'app.title' | translate }}</mat-card-title>
+      <mat-card-subtitle>{{ 'login.subtitle' | translate }}</mat-card-subtitle>
+    </mat-card-header>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <mat-card-content class="fields">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'login.username' | translate }}</mat-label>
+          <input matInput formControlName="username" autocomplete="username" maxlength="50" required />
+          @if (form.controls.username.hasError('required')) {
+            <mat-error>{{ 'errors.fields.required' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'login.password' | translate }}</mat-label>
+          <input matInput formControlName="password" autocomplete="current-password" required
+                 [type]="hidePassword() ? 'password' : 'text'" [maxlength]="maxPasswordLength" />
+          <button mat-icon-button matSuffix type="button" (click)="hidePassword.set(!hidePassword())"
+                  [attr.aria-label]="(hidePassword() ? 'login.showPassword' : 'login.hidePassword') | translate">
+            <mat-icon>{{ hidePassword() ? 'visibility' : 'visibility_off' }}</mat-icon>
+          </button>
+          @if (form.controls.password.hasError('required')) {
+            <mat-error>{{ 'errors.fields.required' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        @if (errorKey(); as key) {
+          <p class="error" role="alert">{{ key | translate }}</p>
+        }
+      </mat-card-content>
+
+      <mat-card-actions align="end">
+        <button mat-flat-button type="submit" [disabled]="busy()">{{ 'login.submit' | translate }}</button>
+      </mat-card-actions>
+    </form>
+  </mat-card>
+</main>

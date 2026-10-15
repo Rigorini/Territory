@@ -1,0 +1,57 @@
+<mat-toolbar class="top">
+  @if (compact()) {
+    <button mat-icon-button (click)="sidenav.toggle()" [attr.aria-label]="'common.menu' | translate">
+      <mat-icon>menu</mat-icon>
+    </button>
+  }
+  <span class="title">{{ 'app.title' | translate }}</span>
+  <span class="spacer"></span>
+  @if (auth.user(); as user) {
+    <span class="user" [title]="user.username"><mat-icon>account_circle</mat-icon>{{ user.displayName }}</span>
+  }
+  <button mat-icon-button [matMenuTriggerFor]="prefs" [attr.aria-label]="'prefs.title' | translate">
+    <mat-icon>settings</mat-icon>
+  </button>
+  <button mat-icon-button (click)="logout()" [attr.aria-label]="'auth.logout' | translate"
+          [matTooltip]="'auth.logout' | translate">
+    <mat-icon>logout</mat-icon>
+  </button>
+</mat-toolbar>
+
+<mat-menu #prefs="matMenu">
+  <button mat-menu-item (click)="changePassword()">
+    <mat-icon>lock_reset</mat-icon>
+    {{ 'account.changePassword' | translate }}
+  </button>
+  <div mat-subheader class="menu-head">{{ 'prefs.theme' | translate }}</div>
+  @for (t of themes; track t) {
+    <button mat-menu-item (click)="preferences.setTheme(t)">
+      <mat-icon>{{ theme.preference() === t ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+      {{ 'prefs.themes.' + t | translate }}
+    </button>
+  }
+  <div mat-subheader class="menu-head">{{ 'prefs.language' | translate }}</div>
+  @for (l of languages; track l) {
+    <button mat-menu-item (click)="preferences.setLanguage(l)">
+      <mat-icon>{{ language.current === l ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+      {{ 'prefs.languages.' + l | translate }}
+    </button>
+  }
+</mat-menu>
+
+<mat-sidenav-container class="container">
+  <mat-sidenav #sidenav [mode]="sidenavMode()" [opened]="!compact()" class="side">
+    <mat-nav-list>
+      @for (item of navItems(); track item.path) {
+        <a mat-list-item [routerLink]="item.path" routerLinkActive #rla="routerLinkActive"
+           [activated]="rla.isActive" (click)="compact() && sidenav.close()">
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle>{{ item.labelKey | translate }}</span>
+        </a>
+      }
+    </mat-nav-list>
+  </mat-sidenav>
+  <mat-sidenav-content class="content">
+    <router-outlet />
+  </mat-sidenav-content>
+</mat-sidenav-container>

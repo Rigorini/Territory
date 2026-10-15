@@ -1,0 +1,39 @@
+<h2 mat-dialog-title>{{ 'assignments.returnTitle' | translate }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <mat-dialog-content class="fields">
+    <p>
+      {{ 'assignments.returnMessage' | translate: {
+        number: data.territory.number, name: data.territory.name, publisher: data.assignment.publisherName } }}
+    </p>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'assignments.returnedAt' | translate }}</mat-label>
+      <input matInput [matDatepicker]="returnedPicker" formControlName="returnedAt" [min]="minDay" [max]="today" required />
+      <mat-hint>{{ 'common.dateHint' | translate }}</mat-hint>
+      <mat-datepicker-toggle matIconSuffix [for]="returnedPicker" />
+      <mat-datepicker #returnedPicker />
+      @if (form.controls.returnedAt.hasError('matDatepickerParse')) {
+        <mat-error>{{ 'errors.fields.invalidDate' | translate }}</mat-error>
+      } @else {
+        @for (code of ['required', 'inFuture', 'beforeAssigned']; track code) {
+          @if (form.controls.returnedAt.hasError(code)) {
+            <mat-error>{{ 'errors.fields.' + code | translate }}</mat-error>
+          }
+        }
+      }
+      @for (code of serverErrors('returnedAt'); track code) {
+        <mat-error>{{ 'errors.fields.' + code | translate }}</mat-error>
+      }
+    </mat-form-field>
+
+    @if (errorKey(); as key) {
+      <p class="error" role="alert">{{ key | translate }}</p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
+    <button mat-flat-button type="submit" [disabled]="busy()">{{ 'assignments.registerReturn' | translate }}</button>
+  </mat-dialog-actions>
+</form>

@@ -1,0 +1,13 @@
+bin/
+obj/
+.vs/
+*.user
+node_modules/
+client/.angular/
+src/Territory.Api/wwwroot/
+TestResults/
+db/*.local.sql
+client/coverage/
+src/Territory.Api/logs/
+
+keys/

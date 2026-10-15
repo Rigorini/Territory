@@ -1,0 +1,79 @@
+<div class="page-head">
+  <h2>{{ 'nav.export' | translate }}</h2>
+</div>
+
+@if (municipalities.loading() || busy()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+<form class="export-form" [formGroup]="form" novalidate>
+  <p class="hint">{{ 'export.hint' | translate }}</p>
+
+  <mat-form-field appearance="outline">
+    <mat-label>{{ 'export.municipality' | translate }}</mat-label>
+    <mat-select formControlName="municipalityId">
+      <mat-option [value]="null">{{ 'export.allMunicipalities' | translate }}</mat-option>
+      @for (m of municipalities.items(); track m.id) {
+        <mat-option [value]="m.id">{{ m.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <div class="period">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'export.from' | translate }}</mat-label>
+      <input matInput [matDatepicker]="fromPicker" formControlName="from" [min]="minDay" />
+      <mat-hint>{{ 'common.dateHint' | translate }}</mat-hint>
+      <mat-datepicker-toggle matIconSuffix [for]="fromPicker" />
+      <mat-datepicker #fromPicker />
+      @if (form.controls.from.hasError('matDatepickerParse')) {
+        <mat-error>{{ 'errors.fields.invalidDate' | translate }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'export.to' | translate }}</mat-label>
+      <input matInput [matDatepicker]="toPicker" formControlName="to" [min]="form.controls.from.value ?? minDay" />
+      <mat-hint>{{ 'common.dateHint' | translate }}</mat-hint>
+      <mat-datepicker-toggle matIconSuffix [for]="toPicker" />
+      <mat-datepicker #toPicker />
+      @if (form.controls.to.hasError('matDatepickerParse')) {
+        <mat-error>{{ 'errors.fields.invalidDate' | translate }}</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  @if (form.hasError('periodOrder')) {
+    <p class="error" role="alert">{{ 'export.periodOrder' | translate }}</p>
+  }
+  <p class="hint">{{ 'export.periodHint' | translate }}</p>
+
+  <div class="actions">
+    <button mat-flat-button type="button" (click)="download('xlsx')" [disabled]="busy() || form.invalid">
+      <mat-icon>table_view</mat-icon>{{ 'export.excel' | translate }}
+    </button>
+    <button mat-stroked-button type="button" (click)="download('docx')" [disabled]="busy() || form.invalid">
+      <mat-icon>description</mat-icon>{{ 'export.word' | translate }}
+    </button>
+  </div>
+</form>
+
+<form class="export-form" novalidate (submit)="$event.preventDefault(); downloadS13()">
+  <h3>{{ 'export.s13Title' | translate }}</h3>
+  <p class="hint">{{ 'export.s13Hint' | translate }}</p>
+
+  <mat-form-field appearance="outline">
+    <mat-label>{{ 'export.serviceYear' | translate }}</mat-label>
+    <input matInput type="number" inputmode="numeric" [formControl]="serviceYear" [min]="minServiceYear" [max]="maxServiceYear" />
+    <mat-hint>{{ 'export.serviceYearHint' | translate }}</mat-hint>
+    @if (serviceYear.invalid) {
+      <mat-error>{{ 'export.serviceYearInvalid' | translate }}</mat-error>
+    }
+  </mat-form-field>
+
+  <div class="actions">
+    <button mat-flat-button type="submit" [disabled]="busy() || serviceYear.invalid">
+      <mat-icon>description</mat-icon>{{ 'export.s13' | translate }}
+    </button>
+  </div>
+</form>

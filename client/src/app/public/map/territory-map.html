@@ -1,0 +1,16 @@
+<div #host class="map" role="application" [attr.aria-label]="'public.mapLabel' | translate"></div>
+
+<div class="tools">
+  <button mat-mini-fab type="button" (click)="resetView()"
+          [matTooltip]="'public.resetView' | translate" [attr.aria-label]="'public.resetView' | translate">
+    <mat-icon>fit_screen</mat-icon>
+  </button>
+  <button mat-mini-fab type="button" (click)="locate()" [class.active]="locateState() === 'active'"
+          [matTooltip]="'public.myPosition' | translate" [attr.aria-label]="'public.myPosition' | translate">
+    <mat-icon>{{ icons[locateState()] }}</mat-icon>
+  </button>
+</div>
+
+@if (locateState() === 'denied' || locateState() === 'unsupported') {
+  <p class="notice" role="status">{{ 'public.locate.' + locateState() | translate }}</p>
+}

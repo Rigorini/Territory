@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Territory.Api/Territory.Api.csproj" />
+    <Project Path="src/Territory.Application/Territory.Application.csproj" />
+    <Project Path="src/Territory.Infrastructure/Territory.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Territory.Tests/Territory.Tests.csproj" />
+  </Folder>
+</Solution>

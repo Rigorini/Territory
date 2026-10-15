@@ -1,0 +1,42 @@
+<h2 mat-dialog-title>{{ 'assignments.historyTitle' | translate: { number: data.territory.number, name: data.territory.name } }}</h2>
+
+<mat-dialog-content>
+  @if (history.loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+  @if (loaded() && history.items().length === 0) {
+    <p>{{ 'assignments.historyEmpty' | translate }}</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">{{ 'assignments.publisher' | translate }}</th>
+          <th scope="col">{{ 'assignments.assignedAt' | translate }}</th>
+          <th scope="col">{{ 'assignments.returnedAt' | translate }}</th>
+          <th scope="col">{{ 'assignments.returnedBy' | translate }}</th>
+          <th scope="col"><span class="sr-only">{{ 'common.actions' | translate }}</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (h of history.items(); track h.id; let i = $index) {
+          <tr>
+            <td class="publisher">{{ h.publisherName }}</td>
+            <td [attr.data-label]="'assignments.assignedAt' | translate">{{ formatDate(h.assignedAt) }}</td>
+            <td [attr.data-label]="'assignments.returnedAt' | translate">{{ formatDate(h.returnedAt) }}</td>
+            <td [attr.data-label]="'assignments.returnedBy' | translate">{{ h.returnedByName ?? (h.returnedBy ? ('assignments.returnedByValues.' + h.returnedBy | translate) : '—') }}</td>
+            <td>
+              <button mat-icon-button type="button" (click)="editDates(i)" [matTooltip]="'assignments.editDates' | translate"
+                      [attr.aria-label]="'assignments.editDates' | translate">
+                <mat-icon>edit_calendar</mat-icon>
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close>{{ 'common.close' | translate }}</button>
+</mat-dialog-actions>
