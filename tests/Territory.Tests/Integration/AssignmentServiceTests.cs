@@ -371,6 +371,30 @@ public sealed class AssignmentServiceTests(PostgresFixture fixture) : IAsyncLife
         Assert.Equal(AssignmentService.NotFoundCode, result.Error!.Code);
     }
 
+    [Fact]
+    public async Task Delete_RemovesOnlyTheGivenAssignment_AndFreesTheTerritory()
+    {
+        var (territory, publisher) = await SeedAsync();
+        var now = clock.GetUtcNow();
+        var returned = await fixture.SeedHistoryAsync(territory.Id, publisher.Id, now.AddDays(-20), now.AddDays(-10), ReturnedBy.Publisher);
+        var open = await fixture.SeedHistoryAsync(territory.Id, publisher.Id, now.AddDays(-3), null);
+
+        var result = await service.DeleteAsync(open.Id, ActorId, Ct);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(await fixture.FindAsync<Assignment>(open.Id));
+        Assert.NotNull(await fixture.FindAsync<Assignment>(returned.Id));
+        Assert.True((await service.AssignAsync(new AssignRequest(territory.Id, publisher.Id, now), ActorId, Ct)).IsSuccess);
+    }
+
+    [Fact]
+    public async Task Delete_UnknownAssignment_ReturnsNotFound()
+    {
+        var result = await service.DeleteAsync(999, ActorId, Ct);
+
+        Assert.Equal(AssignmentService.NotFoundCode, result.Error!.Code);
+    }
+
     private async Task<(TerritoryArea Territory, Publisher Publisher)> SeedAsync()
     {
         var municipality = await fixture.SeedMunicipalityAsync("Giano");

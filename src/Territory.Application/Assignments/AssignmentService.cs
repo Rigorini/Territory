@@ -233,6 +233,21 @@ public sealed partial class AssignmentService(ITerritoryDbContext db, TimeProvid
             : (await ClosedOrMissingAsync(id, cancellationToken)).Error!;
     }
 
+    /// <summary>Removes an assignment (open or returned) from the history; an open one frees the territory.</summary>
+    public async Task<Result<Unit>> DeleteAsync(long id, int actorId, CancellationToken cancellationToken)
+    {
+        var deleted = await db.Assignments
+            .Where(a => a.Id == id)
+            .ExecuteDeleteAsync(cancellationToken);
+        if (deleted == 0)
+        {
+            return AppError.NotFound(NotFoundCode);
+        }
+
+        LogDeleted(id, actorId);
+        return Unit.Value;
+    }
+
     private Result<ValidDates> ValidateDates(UpdateDatesRequest request, bool isOpen)
     {
         var errors = new ValidationErrors();
@@ -329,6 +344,9 @@ public sealed partial class AssignmentService(ITerritoryDbContext db, TimeProvid
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Assignment {AssignmentId} returned by admin {ActorId}")]
     private partial void LogReturned(long assignmentId, int actorId);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Assignment {AssignmentId} deleted by admin {ActorId}")]
+    private partial void LogDeleted(long assignmentId, int actorId);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Dates of assignment {AssignmentId} corrected by admin {ActorId}")]
     private partial void LogDatesUpdated(long assignmentId, int actorId);

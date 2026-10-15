@@ -50,6 +50,24 @@ export class HistoryDialog implements OnInit {
     }
   }
 
+  protected async confirmDelete(entry: AssignmentHistoryDto): Promise<void> {
+    const confirmed = await this.feedback.confirm({
+      titleKey: 'assignments.deleteTitle',
+      messageKey: 'assignments.deleteMessage',
+      params: {
+        number: this.data.territory.number,
+        name: this.data.territory.name,
+        publisher: entry.publisherName,
+        assignedAt: formatDate(entry.assignedAt),
+      },
+      confirmKey: 'common.delete',
+    });
+    if (confirmed) {
+      await this.feedback.attempt(() => this.api.delete(entry.id), 'assignments.deleted');
+      await this.history.reload();
+    }
+  }
+
   protected formatDate(value: string | null): string {
     return value ? formatDate(value) : '—';
   }

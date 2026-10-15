@@ -26,6 +26,9 @@ public static class AssignmentEndpoints
         group.MapPut("/{id:long}", async (long id, UpdateDatesRequest request, ClaimsPrincipal user, AssignmentService service, CancellationToken ct) =>
             (await service.UpdateDatesAsync(id, request, user.GetActorId(), ct)).ToHttp(_ => Results.NoContent()));
 
+        group.MapDelete("/{id:long}", async (long id, ClaimsPrincipal user, AssignmentService service, CancellationToken ct) =>
+            (await service.DeleteAsync(id, user.GetActorId(), ct)).ToHttp(_ => Results.NoContent()));
+
         api.MapGet("/territories/{id:int}/assignments", async (int id, AssignmentService service, CancellationToken ct) =>
             (await service.HistoryAsync(id, ct)).ToHttp(Results.Ok));
 

@@ -29,6 +29,10 @@
                       [attr.aria-label]="'assignments.editDates' | translate">
                 <mat-icon>edit_calendar</mat-icon>
               </button>
+              <button mat-icon-button type="button" (click)="confirmDelete(h)" [matTooltip]="'common.delete' | translate"
+                      [attr.aria-label]="'common.delete' | translate">
+                <mat-icon>delete</mat-icon>
+              </button>
             </td>
           </tr>
         }

@@ -294,7 +294,10 @@
     "editDates": "Edit dates",
     "editDatesTitle": "Edit dates",
     "editDatesMessage": "Territory {{number}} – {{name}}, assigned to {{publisher}}.",
-    "datesUpdated": "Dates updated."
+    "datesUpdated": "Dates updated.",
+    "deleteTitle": "Delete assignment",
+    "deleteMessage": "Delete the assignment of territory {{number}} – {{name}} to {{publisher}} dated {{assignedAt}}? This cannot be undone.",
+    "deleted": "Assignment deleted."
   },
   "public": {
     "territoryTitle": "Territory {{number}} – {{name}}",

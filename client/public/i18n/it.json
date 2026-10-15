@@ -294,7 +294,10 @@
     "editDates": "Modifica date",
     "editDatesTitle": "Modifica date",
     "editDatesMessage": "Territorio {{number}} – {{name}}, assegnato a {{publisher}}.",
-    "datesUpdated": "Date aggiornate."
+    "datesUpdated": "Date aggiornate.",
+    "deleteTitle": "Elimina assegnazione",
+    "deleteMessage": "Eliminare l'assegnazione del territorio {{number}} – {{name}} a {{publisher}} del {{assignedAt}}? L'operazione non può essere annullata.",
+    "deleted": "Assegnazione eliminata."
   },
   "public": {
     "territoryTitle": "Territorio {{number}} – {{name}}",

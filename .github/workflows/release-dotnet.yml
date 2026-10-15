@@ -1,0 +1,57 @@
+name: Build & Release .NET
+
+on:
+  push:
+    tags:
+      - 'v*'        # es. v1.0.0
+  workflow_dispatch: # avvio manuale
+
+jobs:
+  build_publish_zip_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'   # o la versione che ti serve
+
+      - name: Restore
+        run: dotnet restore Territory.sln
+
+      - name: Build
+        run: dotnet build Territory.sln -c Release --no-restore
+
+      - name: Publish
+        run: dotnet publish src/Territory.Api/Territory.Api.csproj -c Release -o ./publish --no-build
+
+      - name: Zip publish folder
+        run: |
+          cd publish
+          zip -r "../Territory ${{ github.ref_name }}.zip" .
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}          # usa il tag che ha triggerato
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            Release automatica per tag ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset (zip)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: "./Territory ${{ github.ref_name }}.zip"
+          asset_name: "Territory ${{ github.ref_name }}.zip"
+          asset_content_type: application/zip

@@ -30,10 +30,13 @@ interface DialogApi {
 function setup<T>(component: Type<T>, data: unknown, extra: { provide: unknown; useValue: unknown }[] = []) {
   const api = {
     assign: vi.fn(), registerReturn: vi.fn().mockResolvedValue(undefined), history: vi.fn().mockResolvedValue([]),
-    updateDates: vi.fn().mockResolvedValue(undefined),
+    updateDates: vi.fn().mockResolvedValue(undefined), delete: vi.fn().mockResolvedValue(undefined),
   };
   const dialogRef = { close: vi.fn() };
-  const feedback = { notify: vi.fn(), notifyError: vi.fn(), open: vi.fn() };
+  const feedback = {
+    notify: vi.fn(), notifyError: vi.fn(), open: vi.fn(), confirm: vi.fn().mockResolvedValue(true),
+    attempt: vi.fn(async (action: () => Promise<unknown>) => { await action(); return true; }),
+  };
   TestBed.configureTestingModule({
     imports: [component],
     providers: [
@@ -241,6 +244,27 @@ describe('HistoryDialog', () => {
     await fixture.whenStable();
     expect(feedback.open).toHaveBeenLastCalledWith(EditDatesDialog, { territory, entry: items[0], previous: items[1], next: null });
     expect(feedback.notify).toHaveBeenCalledWith('assignments.datesUpdated');
+    expect(api.history).toHaveBeenCalledTimes(loads + 1);
+  });
+
+  it('deletes an assignment only after confirmation and reloads', async () => {
+    const items = [
+      { id: 3, publisherName: 'Rossi Mario', assignedAt: '2025-03-04T10:00:00Z', returnedAt: null, returnedBy: null, returnedByName: null },
+    ];
+    const { api, component, feedback, fixture } = setup(HistoryDialog, { territory });
+    api.history.mockResolvedValue(items);
+    const dialog = component as unknown as { ngOnInit(): Promise<void>; confirmDelete(e: unknown): Promise<void> };
+    await dialog.ngOnInit();
+    fixture.detectChanges();
+    const loads = api.history.mock.calls.length;
+
+    feedback.confirm.mockResolvedValueOnce(false);
+    await dialog.confirmDelete(items[0]);
+    expect(api.delete).not.toHaveBeenCalled();
+
+    await dialog.confirmDelete(items[0]);
+    expect(api.delete).toHaveBeenCalledWith(3);
+    expect(feedback.attempt).toHaveBeenCalledWith(expect.any(Function), 'assignments.deleted');
     expect(api.history).toHaveBeenCalledTimes(loads + 1);
   });
 });

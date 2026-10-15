@@ -72,6 +72,11 @@ export class AssignmentsApi {
     return firstValueFrom(this.http.put<void>(`${this.baseUrl}/${assignmentId}`, dates));
   }
 
+  /** Removes an assignment from the history. */
+  delete(assignmentId: number): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`${this.baseUrl}/${assignmentId}`));
+  }
+
   history(territoryId: number): Promise<AssignmentHistoryDto[]> {
     return firstValueFrom(this.http.get<AssignmentHistoryDto[]>(`/api/territories/${territoryId}/assignments`));
   }
