@@ -1,3 +1,7 @@
+<p align="left">
+  <img src="https://github.com/Rigorini/Territory/blob/main/client/public/favicon.svg" width="120" alt="Territory logo">
+</p>
+
 # Territory Register
 
 A territory management system for Jehovah's Witnesses congregations. It keeps track of municipalities, territories and publishers, assigns and returns territories, and records the full assignment history. 
