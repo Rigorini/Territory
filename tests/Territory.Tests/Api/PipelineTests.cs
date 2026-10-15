@@ -1,4 +1,7 @@
 using System.Net;
+using System.Net.Http.Json;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Territory.Api.Security;
 using Territory.Tests.Integration;
 
@@ -29,6 +32,21 @@ public sealed class PipelineTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(SecurityHeadersMiddleware.DevelopmentContentSecurityPolicy, response.Headers.GetValues("Content-Security-Policy").Single());
         Assert.False(response.Headers.Contains("Server"));
     }
+
+    [Fact]
+    public async Task Version_IsReadableWithoutSession_AndComesFromConfiguration()
+    {
+        var expected = factory.Services.GetRequiredService<IConfiguration>()["SoftwareVersion"];
+        Assert.False(string.IsNullOrWhiteSpace(expected));
+
+        var response = await factory.CreateClient().GetAsync("/api/version", TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<VersionResponse>(TestContext.Current.CancellationToken);
+        Assert.Equal(expected, body?.Version);
+    }
+
+    private sealed record VersionResponse(string? Version);
 
     [Fact]
     public async Task UnknownApiRoute_Returns404InsteadOfSpa()

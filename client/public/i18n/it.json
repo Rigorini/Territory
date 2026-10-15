@@ -1,6 +1,7 @@
 {
   "app": {
-    "title": "Registro Territori"
+    "title": "Registro Territori",
+    "version": "Versione {{version}}"
   },
   "account": {
     "changePassword": "Cambia password",

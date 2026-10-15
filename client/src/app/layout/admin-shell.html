@@ -41,15 +41,20 @@
 
 <mat-sidenav-container class="container">
   <mat-sidenav #sidenav [mode]="sidenavMode()" [opened]="!compact()" class="side">
-    <mat-nav-list>
-      @for (item of navItems(); track item.path) {
-        <a mat-list-item [routerLink]="item.path" routerLinkActive #rla="routerLinkActive"
-           [activated]="rla.isActive" (click)="compact() && sidenav.close()">
-          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-          <span matListItemTitle>{{ item.labelKey | translate }}</span>
-        </a>
+    <div class="side-inner">
+      <mat-nav-list class="nav">
+        @for (item of navItems(); track item.path) {
+          <a mat-list-item [routerLink]="item.path" routerLinkActive #rla="routerLinkActive"
+             [activated]="rla.isActive" (click)="compact() && sidenav.close()">
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.labelKey | translate }}</span>
+          </a>
+        }
+      </mat-nav-list>
+      @if (version(); as v) {
+        <div class="version">{{ 'app.version' | translate: { version: v } }}</div>
       }
-    </mat-nav-list>
+    </div>
   </mat-sidenav>
   <mat-sidenav-content class="content">
     <router-outlet />

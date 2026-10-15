@@ -14,6 +14,7 @@ import { map } from 'rxjs';
 import { THEMES, ThemeService } from '../core/theme.service';
 import { LanguageService, SUPPORTED_LANGUAGES } from '../core/language.service';
 import { AuthService } from '../core/auth.service';
+import { AppInfoService } from '../core/app-info.service';
 import { ADMIN_ROLES, ADMINISTRATOR_ONLY, AdminRoleValue, MANAGER_ROLES } from '../core/roles';
 import { Feedback } from '../shared/feedback';
 import { ChangePasswordDialog } from './change-password-dialog';
@@ -40,6 +41,8 @@ const COMPACT_LAYOUT_QUERY = '(max-width: 800px)';
 export class AdminShell {
   private readonly router = inject(Router);
   private readonly feedback = inject(Feedback);
+  private readonly appInfo = inject(AppInfoService);
+  protected readonly version = this.appInfo.version;
   protected readonly auth = inject(AuthService);
   protected readonly theme = inject(ThemeService);
   protected readonly language = inject(LanguageService);
@@ -68,6 +71,7 @@ export class AdminShell {
     if (user) {
       this.preferences.applyProfile(user);
     }
+    void this.appInfo.loadVersion();
   }
 
   protected async changePassword(): Promise<void> {

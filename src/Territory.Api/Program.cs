@@ -84,6 +84,9 @@ var api = app.MapGroup("/api")
     .AddEndpointFilter<AntiforgeryValidationFilter>()
     .AddEndpointFilter<PasswordChangeRequiredFilter>();
 api.MapGet("/ping", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
+// Version of the running software (appsettings.json), shown in the client menu.
+api.MapGet("/version", (IConfiguration configuration) =>
+    Results.Ok(new { version = configuration["SoftwareVersion"] })).AllowAnonymous();
 api.MapAuthEndpoints();
 api.MapSetupEndpoints();
 api.MapAdminEndpoints();

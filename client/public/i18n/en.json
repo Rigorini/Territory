@@ -1,6 +1,7 @@
 {
   "app": {
-    "title": "Territory Register"
+    "title": "Territory Register",
+    "version": "Version {{version}}"
   },
   "account": {
     "changePassword": "Change password",
