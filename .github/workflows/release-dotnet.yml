@@ -20,10 +20,10 @@ jobs:
           dotnet-version: '10.0.x'   # o la versione che ti serve
 
       - name: Restore
-        run: dotnet restore Territory.sln
+        run: dotnet restore Territory.slnx
 
       - name: Build
-        run: dotnet build Territory.sln -c Release --no-restore
+        run: dotnet build Territory.slnx -c Release --no-restore
 
       - name: Publish
         run: dotnet publish src/Territory.Api/Territory.Api.csproj -c Release -o ./publish --no-build
