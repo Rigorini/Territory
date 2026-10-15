@@ -36,25 +36,11 @@ jobs:
           cd publish
           zip -r "../Territory ${{ github.ref_name }}.zip" .
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release & Upload Asset
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
-          body: |
-            Release automatica per tag ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Asset (zip)
-        uses: actions/upload-release-asset@v1
+          name: "Release ${{ github.ref_name }}"
+          files: "Territory ${{ github.ref_name }}.zip"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "./Territory ${{ github.ref_name }}.zip"
-          asset_name: "Territory ${{ github.ref_name }}.zip"
-          asset_content_type: application/zip
