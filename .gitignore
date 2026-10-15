@@ -11,3 +11,4 @@ client/coverage/
 src/Territory.Api/logs/
 
 keys/
+/src/Territory.Api/appsettings.Development.json
