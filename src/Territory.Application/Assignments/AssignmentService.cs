@@ -9,13 +9,17 @@ namespace Territory.Application.Assignments;
 
 public sealed record OpenAssignmentDto(long Id, int PublisherId, string PublisherName, DateTimeOffset AssignedAt);
 
-/// <summary>Current state of a territory: its open assignment, the date it was last returned and how many times it was assigned in the last 365 days.</summary>
+/// <summary>
+/// Current state of a territory: its open assignment, the date it was last returned and how many times it was
+/// assigned in the last 365 days. MapUrl is the admin-facing MyMaps viewer link rebuilt from the stored map id.
+/// </summary>
 public sealed record TerritoryStatusDto(
     int TerritoryId,
     int MunicipalityId,
     string MunicipalityName,
     int Number,
     string Name,
+    string MapUrl,
     OpenAssignmentDto? Assignment,
     DateTimeOffset? LastReturnedAt,
     int AssignmentsLastYear);
@@ -71,6 +75,7 @@ public sealed partial class AssignmentService(ITerritoryDbContext db, TimeProvid
                 MunicipalityName = t.Municipality!.Name,
                 t.Number,
                 t.Name,
+                t.MyMapsId,
                 Open = t.Assignments
                     .Where(a => a.ReturnedAt == null)
                     .Select(a => new { a.Id, a.PublisherId, a.Publisher!.FirstName, a.Publisher.LastName, a.AssignedAt })
@@ -86,6 +91,7 @@ public sealed partial class AssignmentService(ITerritoryDbContext db, TimeProvid
                 r.MunicipalityName,
                 r.Number,
                 r.Name,
+                MyMapsLink.ToViewerUrl(r.MyMapsId),
                 r.Open is null ? null : new OpenAssignmentDto(r.Open.Id, r.Open.PublisherId, FullName(r.Open.FirstName, r.Open.LastName), r.Open.AssignedAt),
                 r.LastReturnedAt,
                 r.LastYear))

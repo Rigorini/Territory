@@ -10,6 +10,7 @@ import { Feedback } from '../shared/feedback';
 
 const territory: TerritoryStatusDto = {
   territoryId: 1, municipalityId: 1, municipalityName: 'Giano', number: 3, name: 'Centro',
+  mapUrl: 'https://www.google.com/maps/d/viewer?mid=map-1',
   assignment: null, lastReturnedAt: null, assignmentsLastYear: 0,
 };
 

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Territory.Application.Assignments;
+using Territory.Application.Territories;
 
 namespace Territory.Tests.Integration;
 
@@ -51,6 +52,7 @@ public sealed class AssignmentApiTests(PostgresFixture fixture) : IAsyncLifetime
 
         var status = (await client.Http.GetFromJsonAsync<TerritoryStatusDto[]>("/api/assignments", Ct))!.Single();
         Assert.Equal(link.AssignmentId, status.Assignment!.Id);
+        Assert.Equal(MyMapsLink.ToViewerUrl(territory.MyMapsId), status.MapUrl);
 
         var renewed = await client.SendAsync(HttpMethod.Post, $"/api/assignments/{link.AssignmentId}/link", null);
         Assert.Equal(HttpStatusCode.OK, renewed.StatusCode);

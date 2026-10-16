@@ -15,6 +15,8 @@ export interface TerritoryStatusDto {
   municipalityName: string;
   number: number;
   name: string;
+  /** MyMaps viewer link of the territory. */
+  mapUrl: string;
   assignment: OpenAssignmentDto | null;
   lastReturnedAt: string | null;
   /** Times the territory was assigned in the last 365 days. */

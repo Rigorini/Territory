@@ -44,6 +44,7 @@ public sealed class AssignmentServiceTests(PostgresFixture fixture) : IAsyncLife
         var list = await service.ListStatusAsync(Ct);
 
         Assert.Equal([b1.Id, t1.Id, t2.Id], list.Select(s => s.TerritoryId));
+        Assert.Equal(MyMapsLink.ToViewerUrl(t1.MyMapsId), list[1].MapUrl);
         Assert.Null(list[0].Assignment);
         Assert.Null(list[0].LastReturnedAt);
         Assert.Null(list[1].Assignment);

@@ -20,6 +20,7 @@ import { provideDayDateAdapter } from '../shared/day-date-adapter';
 const assignment = { id: 7, publisherId: 2, publisherName: 'Rossi Mario', assignedAt: '2025-03-04T10:00:00Z' };
 const territory: TerritoryStatusDto = {
   territoryId: 1, municipalityId: 1, municipalityName: 'Giano', number: 3, name: 'Centro',
+  mapUrl: 'https://www.google.com/maps/d/viewer?mid=map-1',
   assignment: null, lastReturnedAt: '2025-01-10T10:00:00Z', assignmentsLastYear: 0,
 };
 

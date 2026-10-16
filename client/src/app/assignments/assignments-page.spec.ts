@@ -15,10 +15,11 @@ import { Paging } from '../shared/paging';
 import { TableState } from '../shared/table-state';
 
 const open: OpenAssignmentDto = { id: 7, publisherId: 2, publisherName: 'Rossi Mario', assignedAt: '2025-03-04T10:00:00Z' };
+const mapUrl = (id: number) => `https://www.google.com/maps/d/viewer?mid=map-${id}`;
 const statuses: TerritoryStatusDto[] = [
-  { territoryId: 1, municipalityId: 1, municipalityName: 'Giano', number: 2, name: 'Centro', assignment: open, lastReturnedAt: null, assignmentsLastYear: 0 },
-  { territoryId: 2, municipalityId: 1, municipalityName: 'Giano', number: 1, name: 'Borgo', assignment: null, lastReturnedAt: '2024-11-20T10:00:00Z', assignmentsLastYear: 0 },
-  { territoryId: 3, municipalityId: 2, municipalityName: 'Bastardo', number: 1, name: 'Piazza', assignment: null, lastReturnedAt: null, assignmentsLastYear: 0 },
+  { territoryId: 1, municipalityId: 1, municipalityName: 'Giano', number: 2, name: 'Centro', mapUrl: mapUrl(1), assignment: open, lastReturnedAt: null, assignmentsLastYear: 0 },
+  { territoryId: 2, municipalityId: 1, municipalityName: 'Giano', number: 1, name: 'Borgo', mapUrl: mapUrl(2), assignment: null, lastReturnedAt: '2024-11-20T10:00:00Z', assignmentsLastYear: 0 },
+  { territoryId: 3, municipalityId: 2, municipalityName: 'Bastardo', number: 1, name: 'Piazza', mapUrl: mapUrl(3), assignment: null, lastReturnedAt: null, assignmentsLastYear: 0 },
 ];
 const publishers = [{ id: 2, firstName: 'Mario', lastName: 'Rossi' }];
 const link = { assignmentId: 9, token: 'tok' };
@@ -77,6 +78,24 @@ describe('AssignmentsPage', () => {
     expect(page.table.rows().map(s => s.territoryId)).toEqual([3, 2, 1]);
     page.table.onSort({ active: 'status', direction: 'asc' });
     expect(page.table.rows().map(s => s.territoryId)).toEqual([1, 3, 2]);
+  });
+
+  it('links the map of the territory from the row actions', async () => {
+    const { fixture } = await setup();
+    const rows = [...fixture.nativeElement.querySelectorAll('tr.mat-mdc-row')] as HTMLElement[];
+    const links = (row: HTMLElement) =>
+      [...row.querySelectorAll('td.actions a.act-map')] as HTMLAnchorElement[];
+
+    expect(links(rows[0]).map(a => a.getAttribute('href'))).toEqual([mapUrl(1)]);
+    expect(rows.every(row => links(row).length === 1)).toBe(true);
+    // The map comes before the other actions of the row.
+    const actions = [...rows[0].querySelectorAll('td.actions > *')].map(el => el.className);
+    expect(actions[0]).toContain('act-map');
+
+    const [link] = links(rows[0]);
+    expect(link.target).toBe('_blank');
+    expect(link.rel).toBe('noopener noreferrer');
+    expect(link.getAttribute('aria-label')).toBe('territories.openMap');
   });
 
   it.each([
