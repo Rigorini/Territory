@@ -12,7 +12,7 @@
     <button mat-icon-button (click)="toggleSortDirection()" [attr.aria-label]="'common.reverseSort' | translate">
       <mat-icon>{{ descending() ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
     </button>
-    <button mat-stroked-button (click)="filtersOpen.set(!filtersOpen())" [attr.aria-expanded]="filtersOpen()">
+    <button mat-button class="filters-toggle" (click)="filtersOpen.set(!filtersOpen())" [attr.aria-expanded]="filtersOpen()">
       <mat-icon>filter_list</mat-icon>{{ 'common.filters' | translate }}
     </button>
   </div>

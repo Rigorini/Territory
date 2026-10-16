@@ -180,6 +180,8 @@ describe('AssignmentsPage', () => {
     expect(controls.classList).toContain('mobile-flex');
     expect(controls.querySelector('mat-select')).not.toBeNull();
     expect(controls.textContent).toContain('common.filters');
+    // filters-toggle keeps the button compact: it shares the phone row with the sort select.
+    expect(controls.querySelector('button.filters-toggle')).not.toBeNull();
     expect(head.querySelectorAll(':scope > button').length).toBe(0);
   });
 

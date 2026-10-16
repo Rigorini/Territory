@@ -25,9 +25,10 @@
       }
     </mat-form-field>
 
-    <mat-form-field appearance="outline">
+    <!-- The whole field opens the calendar: the readonly input takes the day only from the picker. -->
+    <mat-form-field appearance="outline" (click)="assignedPicker.open()">
       <mat-label>{{ 'assignments.assignedAt' | translate }}</mat-label>
-      <input matInput [matDatepicker]="assignedPicker" formControlName="assignedAt" [min]="minDay" [max]="today" required />
+      <input matInput readonly [matDatepicker]="assignedPicker" formControlName="assignedAt" [min]="minDay" [max]="today" required />
       <mat-hint>{{ 'common.dateHint' | translate }}</mat-hint>
       <mat-datepicker-toggle matIconSuffix [for]="assignedPicker" />
       <mat-datepicker #assignedPicker />

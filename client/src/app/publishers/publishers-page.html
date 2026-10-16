@@ -1,6 +1,6 @@
 <div class="page-head">
   <h2>{{ 'nav.publishers' | translate }}</h2>
-  <button mat-stroked-button class="mobile-only" (click)="filtersOpen.set(!filtersOpen())" [attr.aria-expanded]="filtersOpen()">
+  <button mat-button class="mobile-only filters-toggle" (click)="filtersOpen.set(!filtersOpen())" [attr.aria-expanded]="filtersOpen()">
     <mat-icon>filter_list</mat-icon>{{ 'common.filters' | translate }}
   </button>
   <button mat-flat-button (click)="openDialog()">

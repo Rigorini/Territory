@@ -1,6 +1,6 @@
 <div class="page-head">
   <h2>{{ 'nav.admins' | translate }}</h2>
-  <button mat-stroked-button class="mobile-only" (click)="filtersOpen.set(!filtersOpen())"
+  <button mat-button class="mobile-only filters-toggle" (click)="filtersOpen.set(!filtersOpen())"
           [attr.aria-expanded]="filtersOpen()">
     <mat-icon>filter_list</mat-icon>{{ 'common.filters' | translate }}
   </button>

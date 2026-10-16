@@ -183,14 +183,36 @@ $assigned-fg: light-dark(#7a3e00, #ffe0b2);
 
   .mobile-sort {
     flex: 1 1 auto;
-    gap: 12px;
+    gap: 8px;
 
+    // A phone-sized sort select: shorter than a standard field and never wider than the room it shares
+    // with the sort direction and the filter toggle.
     .sort-field {
-      flex: 1 1 140px;
+      flex: 1 1 auto;
+      min-width: 140px;
+      max-width: 190px;
+      --mat-form-field-container-height: 44px;
+      --mat-form-field-container-vertical-padding: 10px;
+      --mat-select-trigger-text-size: 13px;
     }
 
     button[mat-icon-button] .mat-icon {
       margin-right: 0;
+    }
+  }
+
+  // Phone filter toggle: a borderless, compact label, so it fits the row it shares with the sort controls.
+  // The second class matches Material's own .mat-mdc-button:has(mat-icon) padding rule, which is more specific.
+  button.filters-toggle.mat-mdc-button-base {
+    flex: none;
+    height: 36px;
+    padding: 0 10px;
+
+    .mat-icon {
+      width: 18px;
+      height: 18px;
+      margin-right: 6px;
+      font-size: 18px;
     }
   }
 

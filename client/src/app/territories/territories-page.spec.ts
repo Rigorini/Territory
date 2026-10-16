@@ -136,6 +136,21 @@ describe('TerritoriesTable', () => {
     expect(shown()).toBe(1);
   });
 
+  it('links the map of the territory from the row actions', () => {
+    const { fixture } = create(mockFeedback(undefined));
+    const rows = [...(fixture.nativeElement as HTMLElement).querySelectorAll('tr.mat-mdc-row')] as HTMLElement[];
+    const links = (row: HTMLElement) => [...row.querySelectorAll('td.actions a.act-map')] as HTMLAnchorElement[];
+
+    expect(rows.every(row => links(row).length === 1)).toBe(true);
+    // The map comes before the other actions of the row.
+    expect([...rows[0].querySelectorAll('td.actions > *')].map(el => el.className)[0]).toContain('act-map');
+
+    const [link] = links(rows[0]);
+    expect(link.target).toBe('_blank');
+    expect(link.rel).toBe('noopener noreferrer');
+    expect(link.getAttribute('aria-label')).toBe('territories.openMap');
+  });
+
   it('opens the dialog with the municipalities and notifies a save', async () => {
     const feedback = mockFeedback(territories[0]);
     const { table, changed } = create(feedback);

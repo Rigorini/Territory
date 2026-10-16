@@ -20,9 +20,10 @@
   </mat-form-field>
 
   <div class="period">
-    <mat-form-field appearance="outline">
+    <!-- Clicking anywhere in a field opens its calendar: the readonly inputs take the days only from the picker. -->
+    <mat-form-field appearance="outline" (click)="fromPicker.open()">
       <mat-label>{{ 'export.from' | translate }}</mat-label>
-      <input matInput [matDatepicker]="fromPicker" formControlName="from" [min]="minDay" />
+      <input matInput readonly [matDatepicker]="fromPicker" formControlName="from" [min]="minDay" />
       <mat-hint>{{ 'common.dateHint' | translate }}</mat-hint>
       <mat-datepicker-toggle matIconSuffix [for]="fromPicker" />
       <mat-datepicker #fromPicker />
@@ -31,9 +32,9 @@
       }
     </mat-form-field>
 
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" (click)="toPicker.open()">
       <mat-label>{{ 'export.to' | translate }}</mat-label>
-      <input matInput [matDatepicker]="toPicker" formControlName="to" [min]="form.controls.from.value ?? minDay" />
+      <input matInput readonly [matDatepicker]="toPicker" formControlName="to" [min]="form.controls.from.value ?? minDay" />
       <mat-hint>{{ 'common.dateHint' | translate }}</mat-hint>
       <mat-datepicker-toggle matIconSuffix [for]="toPicker" />
       <mat-datepicker #toPicker />

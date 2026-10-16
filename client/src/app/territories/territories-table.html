@@ -1,5 +1,5 @@
 <div class="table-toolbar">
-  <button mat-stroked-button class="mobile-only" (click)="filtersOpen.set(!filtersOpen())" [attr.aria-expanded]="filtersOpen()">
+  <button mat-button class="mobile-only filters-toggle" (click)="filtersOpen.set(!filtersOpen())" [attr.aria-expanded]="filtersOpen()">
     <mat-icon>filter_list</mat-icon>{{ 'common.filters' | translate }}
   </button>
   <button mat-flat-button (click)="openDialog()" [disabled]="municipalities().length === 0"
@@ -27,19 +27,13 @@
       <td mat-cell *matCellDef="let t" [attr.data-label]="'territories.name' | translate">{{ t.name }}</td>
     </ng-container>
 
-    <ng-container matColumnDef="map">
-      <th mat-header-cell *matHeaderCellDef>{{ 'territories.map' | translate }}</th>
-      <td mat-cell *matCellDef="let t" [attr.data-label]="'territories.map' | translate">
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef><span class="sr-only">{{ 'common.actions' | translate }}</span></th>
+      <td mat-cell *matCellDef="let t" class="actions">
         <a mat-icon-button class="act-map" [href]="t.mapUrl" target="_blank" rel="noopener noreferrer"
            [matTooltip]="'territories.openMap' | translate" [attr.aria-label]="'territories.openMap' | translate">
           <mat-icon>open_in_new</mat-icon>
         </a>
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef><span class="sr-only">{{ 'common.actions' | translate }}</span></th>
-      <td mat-cell *matCellDef="let t" class="actions">
         <button mat-icon-button class="act-edit" (click)="openDialog(t)" [matTooltip]="'common.edit' | translate"
                 [attr.aria-label]="'common.edit' | translate">
           <mat-icon>edit</mat-icon>
@@ -68,9 +62,6 @@
         <app-column-filter [label]="'territories.name' | translate" [value]="table.filter('name')"
                            (valueChange)="table.setFilter('name', $event)" />
       </th>
-    </ng-container>
-    <ng-container matColumnDef="f-map">
-      <th mat-header-cell *matHeaderCellDef></th>
     </ng-container>
     <ng-container matColumnDef="f-actions">
       <th mat-header-cell *matHeaderCellDef>

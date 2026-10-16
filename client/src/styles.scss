@@ -33,6 +33,13 @@ body {
   height: 100%;
 }
 
+// Dialog scrim: on an already dark page a dark scrim separates nothing, so dark mode lightens the page
+// instead, leaving the dialog as the one solid, darker panel. (.cdk-overlay-container outranks the CDK's
+// own rule for this class, which is injected at runtime.)
+.cdk-overlay-container .cdk-overlay-dark-backdrop {
+  background: light-dark(rgba(0, 0, 0, 0.32), rgba(255, 255, 255, 0.2));
+}
+
 // Row action buttons: 48px touch target, larger icon, one colour per action (WCAG AA contrast on light and dark surfaces).
 .mat-mdc-icon-button[class*='act-'] {
   --mat-icon-button-state-layer-size: 48px;

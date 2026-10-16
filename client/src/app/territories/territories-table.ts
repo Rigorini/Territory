@@ -30,7 +30,7 @@ export class TerritoriesTable {
   readonly municipalities = input.required<readonly MunicipalityDto[]>();
   readonly changed = output();
 
-  protected readonly columns = ['municipality', 'number', 'name', 'map', 'actions'];
+  protected readonly columns = ['municipality', 'number', 'name', 'actions'];
   protected readonly filterColumns = this.columns.map(c => `f-${c}`);
   protected readonly filtersOpen = signal(false);
   protected readonly municipalityOptions = computed<FilterOption[]>(() =>

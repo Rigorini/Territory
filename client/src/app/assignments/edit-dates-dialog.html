@@ -7,9 +7,10 @@
         number: data.territory.number, name: data.territory.name, publisher: data.entry.publisherName } }}
     </p>
 
-    <mat-form-field appearance="outline">
+    <!-- Clicking anywhere in a field opens its calendar: the readonly inputs take the days only from the picker. -->
+    <mat-form-field appearance="outline" (click)="assignedPicker.open()">
       <mat-label>{{ 'assignments.assignedAt' | translate }}</mat-label>
-      <input matInput [matDatepicker]="assignedPicker" formControlName="assignedAt" [min]="minAssignedDay" [max]="today" required />
+      <input matInput readonly [matDatepicker]="assignedPicker" formControlName="assignedAt" [min]="minAssignedDay" [max]="today" required />
       <mat-hint>{{ 'common.dateHint' | translate }}</mat-hint>
       <mat-datepicker-toggle matIconSuffix [for]="assignedPicker" />
       <mat-datepicker #assignedPicker />
@@ -28,9 +29,9 @@
     </mat-form-field>
 
     @if (isReturned) {
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" (click)="returnedPicker.open()">
         <mat-label>{{ 'assignments.returnedAt' | translate }}</mat-label>
-        <input matInput [matDatepicker]="returnedPicker" formControlName="returnedAt"
+        <input matInput readonly [matDatepicker]="returnedPicker" formControlName="returnedAt"
                [min]="form.controls.assignedAt.value" [max]="maxReturnedDay" required />
         <mat-hint>{{ 'common.dateHint' | translate }}</mat-hint>
         <mat-datepicker-toggle matIconSuffix [for]="returnedPicker" />

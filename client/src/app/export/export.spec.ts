@@ -1,4 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { MatDatepicker } from '@angular/material/datepicker';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideTranslateService } from '@ngx-translate/core';
@@ -194,6 +196,24 @@ describe('ExportPage', () => {
     expect(element.querySelectorAll('mat-error')).toHaveLength(2);
     expect(element.textContent).toContain('errors.fields.invalidDate');
     expect(exportApi.download).not.toHaveBeenCalled();
+  });
+
+  it('takes the period from the calendar, never from the keyboard', async () => {
+    const { fixture } = await setup();
+    const [from, to] = [...(fixture.nativeElement as HTMLElement).querySelectorAll('input')] as HTMLInputElement[];
+
+    expect([from.readOnly, to.readOnly]).toEqual([true, true]);
+  });
+
+  it('opens the calendar from anywhere in a period field', async () => {
+    const { fixture } = await setup();
+    const element = fixture.nativeElement as HTMLElement;
+    const from = element.querySelector('input[formcontrolname="from"]')!.closest('mat-form-field') as HTMLElement;
+    const pickers = fixture.debugElement.queryAll(By.directive(MatDatepicker)).map(d => d.injector.get(MatDatepicker));
+
+    from.click();
+
+    expect(pickers.map(p => p.opened)).toEqual([true, false]);
   });
 
   it('shows the period error and does not download an invalid period', async () => {

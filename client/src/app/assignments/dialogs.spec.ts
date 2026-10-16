@@ -5,6 +5,7 @@ import { provideRouter, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { MatAutocomplete } from '@angular/material/autocomplete';
+import { MatDatepicker } from '@angular/material/datepicker';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { provideTranslateService } from '@ngx-translate/core';
 import { AssignmentsApi, TerritoryStatusDto } from './assignments.api';
@@ -150,6 +151,24 @@ describe('AssignDialog', () => {
 
     expect(dialog.errorKey()).toBe('errors.codes.assignments.alreadyAssigned');
   });
+
+  it('takes the day from the calendar, never from the keyboard', () => {
+    const { fixture } = setup(AssignDialog, data);
+    const input = (fixture.nativeElement as HTMLElement).querySelector('input[formcontrolname="assignedAt"]');
+
+    expect((input as HTMLInputElement).readOnly).toBe(true);
+  });
+
+  it('opens the calendar from anywhere in the field', () => {
+    const { fixture } = setup(AssignDialog, data);
+    const fields = (fixture.nativeElement as HTMLElement).querySelectorAll('mat-form-field');
+    const pickers = fixture.debugElement.queryAll(By.directive(MatDatepicker)).map(d => d.injector.get(MatDatepicker));
+
+    // The publisher field comes first: only the day field carries a picker.
+    (fields[1] as HTMLElement).click();
+
+    expect(pickers.map(p => p.opened)).toEqual([true]);
+  });
 });
 
 describe('ReturnDialog', () => {
@@ -198,6 +217,23 @@ describe('ReturnDialog', () => {
     await dialog.save();
 
     expect(dialog.serverErrors('returnedAt')).toEqual(['beforeAssigned']);
+  });
+
+  it('takes the day from the calendar, never from the keyboard', () => {
+    const { fixture } = setup(ReturnDialog, data);
+    const input = (fixture.nativeElement as HTMLElement).querySelector('input') as HTMLInputElement;
+
+    expect(input.readOnly).toBe(true);
+  });
+
+  it('opens the calendar from anywhere in the field', () => {
+    const { fixture } = setup(ReturnDialog, data);
+    const field = (fixture.nativeElement as HTMLElement).querySelector('mat-form-field') as HTMLElement;
+    const picker = fixture.debugElement.query(By.directive(MatDatepicker)).injector.get(MatDatepicker);
+
+    field.click();
+
+    expect(picker.opened).toBe(true);
   });
 });
 
@@ -411,5 +447,22 @@ describe('EditDatesDialog', () => {
     await (component as unknown as DialogApi).save();
 
     expect(api.updateDates).toHaveBeenCalledWith(6, { assignedAt: next.assignedAt, returnedAt: null });
+  });
+
+  it('takes both days from the calendar, never from the keyboard', () => {
+    const { fixture } = setup(EditDatesDialog, data);
+    const inputs = [...(fixture.nativeElement as HTMLElement).querySelectorAll('input')] as HTMLInputElement[];
+
+    expect(inputs.map(input => input.readOnly)).toEqual([true, true]);
+  });
+
+  it('opens each calendar from anywhere in its own field', () => {
+    const { fixture } = setup(EditDatesDialog, data);
+    const fields = [...(fixture.nativeElement as HTMLElement).querySelectorAll('mat-form-field')] as HTMLElement[];
+    const pickers = fixture.debugElement.queryAll(By.directive(MatDatepicker)).map(d => d.injector.get(MatDatepicker));
+
+    fields[1].click();
+
+    expect(pickers.map(p => p.opened)).toEqual([false, true]);
   });
 });
