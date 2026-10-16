@@ -4,7 +4,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GeoFeatureCollection } from '../public.api';
-import { LocateState, MAP_CONTROLLER_FACTORY, MapController } from './map-controller';
+import { BaseLayerKind } from './base-layers';
+import { LocateState, MAP_CONTROLLER_FACTORY, MapController, MapNotice } from './map-controller';
 
 const LOCATE_ICONS: Record<LocateState, string> = {
   idle: 'my_location',
@@ -12,6 +13,12 @@ const LOCATE_ICONS: Record<LocateState, string> = {
   active: 'my_location',
   denied: 'location_disabled',
   unsupported: 'location_disabled',
+};
+
+/** Icon of what the button switches to, not of the current basemap. */
+const BASEMAP_ICONS: Record<BaseLayerKind, string> = {
+  street: 'satellite_alt',
+  satellite: 'map',
 };
 
 /** Interactive territory map: pan/zoom, fit to territory and GPS position. */
@@ -29,11 +36,15 @@ export class TerritoryMap {
   private controller?: MapController;
 
   protected readonly locateState = signal<LocateState>('idle');
+  protected readonly baseLayer = signal<BaseLayerKind>('street');
+  protected readonly satelliteUnavailable = signal(false);
   protected readonly icons = LOCATE_ICONS;
+  protected readonly basemapIcons = BASEMAP_ICONS;
 
   constructor() {
     afterNextRender(() => {
-      this.controller = this.createController(this.host().nativeElement, this.map(), state => this.locateState.set(state));
+      this.controller = this.createController(this.host().nativeElement, this.map(), notice => this.onNotice(notice));
+      this.controller.setBaseLayer(this.baseLayer());
     });
     inject(DestroyRef).onDestroy(() => this.controller?.dispose());
   }
@@ -44,5 +55,24 @@ export class TerritoryMap {
 
   protected locate(): void {
     this.controller?.locate();
+  }
+
+  protected toggleBaseLayer(): void {
+    const next: BaseLayerKind = this.baseLayer() === 'street' ? 'satellite' : 'street';
+    this.baseLayer.set(next);
+    this.satelliteUnavailable.set(false);
+    this.controller?.setBaseLayer(next);
+  }
+
+  private onNotice(notice: MapNotice): void {
+    switch (notice.kind) {
+      case 'locate':
+        this.locateState.set(notice.state);
+        break;
+      case 'satelliteUnavailable':
+        this.baseLayer.set('street');
+        this.satelliteUnavailable.set(true);
+        break;
+    }
   }
 }

@@ -319,6 +319,9 @@
     "mapLabel": "Mappa del territorio",
     "resetView": "Mostra tutto il territorio",
     "myPosition": "La mia posizione",
+    "showSatellite": "Mostra la mappa satellitare",
+    "showStreet": "Torna alla mappa stradale",
+    "satelliteUnavailable": "Mappa satellitare non disponibile: è stata ripristinata la mappa stradale.",
     "locate": {
       "denied": "Posizione non disponibile: consenti l'accesso alla posizione nelle impostazioni del browser.",
       "unsupported": "Questo dispositivo non supporta la geolocalizzazione."

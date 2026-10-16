@@ -20,7 +20,8 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvi
         "default-src 'self'; " +
         "script-src 'self'; " +
         "style-src 'self' 'unsafe-inline'; " +
-        "img-src 'self' data: blob: https://tile.openstreetmap.org; " +
+        // Map tiles: OpenStreetMap for the street map, Esri for the optional satellite imagery.
+        "img-src 'self' data: blob: https://tile.openstreetmap.org https://server.arcgisonline.com; " +
         "font-src 'self'; " +
         $"connect-src {connectSources}; " +
         "object-src 'none'; " +

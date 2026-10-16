@@ -22,11 +22,17 @@
   color: #1a73e8;
 }
 
-.notice {
+.notices {
   position: absolute;
   left: 12px;
   right: 72px;
   bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notice {
   margin: 0;
   padding: 8px 12px;
   border-radius: 8px;

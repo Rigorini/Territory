@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { provideTranslateService } from '@ngx-translate/core';
 import { Feedback } from '../shared/feedback';
-import { LocateState, MAP_CONTROLLER_FACTORY, MapControllerFactory } from './map/map-controller';
+import { LocateState, MAP_CONTROLLER_FACTORY, MapControllerFactory, MapNotice } from './map/map-controller';
 import { TerritoryMap } from './map/territory-map';
 import { GeoFeatureCollection, PublicApi, PublicTerritoryDto } from './public.api';
 import { TerritoryView } from './territory-view';
@@ -19,13 +19,18 @@ const notFound = new HttpErrorResponse({ status: 404, error: { code: 'public.inv
 const serverError = new HttpErrorResponse({ status: 500 });
 
 function fakeController() {
-  let onLocate: (state: LocateState) => void = () => undefined;
-  const controller = { resetView: vi.fn(), locate: vi.fn(), dispose: vi.fn() };
+  let notify: (notice: MapNotice) => void = () => undefined;
+  const controller = { setBaseLayer: vi.fn(), resetView: vi.fn(), locate: vi.fn(), dispose: vi.fn() };
   const factory = vi.fn<MapControllerFactory>((_target, _map, callback) => {
-    onLocate = callback;
+    notify = callback;
     return controller;
   });
-  return { controller, factory, emit: (state: LocateState) => onLocate(state) };
+  return {
+    controller,
+    factory,
+    emit: (state: LocateState) => notify({ kind: 'locate', state }),
+    emitSatelliteUnavailable: () => notify({ kind: 'satelliteUnavailable' }),
+  };
 }
 
 /** Renders, lets pending API promises settle, then renders their outcome. */
@@ -79,6 +84,44 @@ describe('TerritoryMap', () => {
     emit('denied');
     fixture.detectChanges();
     expect(element.querySelector('.notice')!.textContent).toContain('public.locate.denied');
+  });
+
+  it('switches the basemap from the button', async () => {
+    const { controller, fixture, element } = await setup();
+    const button = [...element.querySelectorAll('button')].at(-1)!;
+
+    expect(controller.setBaseLayer).toHaveBeenCalledWith('street');
+
+    button.click();
+    fixture.detectChanges();
+
+    expect(controller.setBaseLayer).toHaveBeenLastCalledWith('satellite');
+    expect(button.getAttribute('aria-pressed')).toBe('true');
+    expect(button.textContent).toContain('map');
+
+    button.click();
+    fixture.detectChanges();
+
+    expect(controller.setBaseLayer).toHaveBeenLastCalledWith('street');
+    expect(button.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('falls back to the street map when the satellite tiles do not load', async () => {
+    const { emitSatelliteUnavailable, fixture, element } = await setup();
+    const button = [...element.querySelectorAll('button')].at(-1)!;
+    button.click();
+    fixture.detectChanges();
+
+    emitSatelliteUnavailable();
+    fixture.detectChanges();
+
+    expect(button.getAttribute('aria-pressed')).toBe('false');
+    expect(element.querySelector('.notice')!.textContent).toContain('public.satelliteUnavailable');
+
+    // Trying again clears the message.
+    button.click();
+    fixture.detectChanges();
+    expect(element.querySelector('.notice')).toBeNull();
   });
 });
 

@@ -2,9 +2,14 @@ import { Feature } from 'ol';
 import ImageTile from 'ol/ImageTile';
 import Tile from 'ol/Tile';
 import { LineString, Point, Polygon } from 'ol/geom';
+import TileLayer from 'ol/layer/Tile';
+import { Map as OlMap } from 'ol';
+import OSM from 'ol/source/OSM';
+import XYZ from 'ol/source/XYZ';
 import CircleStyle from 'ol/style/Circle';
 import { GeoFeatureCollection } from '../public.api';
-import { LocateState, MAP_CONTROLLER_FACTORY, OlMapController } from './map-controller';
+import { createBaseLayers, satelliteUnavailable } from './base-layers';
+import { LocateState, MAP_CONTROLLER_FACTORY, MapNotice, OlMapController } from './map-controller';
 import { featureStyle, loadTileWithReferrer, styleFeature } from './map-style';
 import { TestBed } from '@angular/core/testing';
 
@@ -18,6 +23,39 @@ const collection: GeoFeatureCollection = {
     },
   ],
 };
+
+describe('basemap layers', () => {
+  const attributionsOf = (layer: TileLayer<OSM | XYZ>) => {
+    const value = layer.getSource()!.getAttributions()!(undefined as never);
+    return Array.isArray(value) ? value : [value];
+  };
+
+  it('offers the street map, and the imagery with its labels on top', () => {
+    const street = createBaseLayers('street');
+    const satellite = createBaseLayers('satellite');
+
+    expect(street.length).toBe(1);
+    expect(attributionsOf(street[0]).join()).toContain('OpenStreetMap');
+
+    const [imagery, labels] = satellite;
+    expect(imagery.getSource()!.getUrls()).toEqual([
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    ]);
+    expect(labels.getSource()!.getUrls()).toEqual([
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+    ]);
+    expect(imagery.getZIndex()).toBeLessThan(labels.getZIndex()!);
+    // The imagery is licensed from several providers: the credit is part of the deal.
+    expect(attributionsOf(imagery).join()).toContain('Esri');
+  });
+
+  it('treats imagery that never loaded a tile as unavailable', () => {
+    expect(satelliteUnavailable(0, 2)).toBe(false);
+    expect(satelliteUnavailable(0, 3)).toBe(true);
+    // A single loaded tile proves the service answers: gaps are not an outage.
+    expect(satelliteUnavailable(1, 8)).toBe(false);
+  });
+});
 
 describe('map style', () => {
   it('uses server colours, a label and a dot for points', () => {
@@ -82,13 +120,17 @@ describe('OlMapController', () => {
   });
 
   let target: HTMLElement;
-  let states: LocateState[];
+  let notices: MapNotice[];
   let watch: { success?: PositionCallback; error?: PositionErrorCallback };
+
+  /** GPS states, ignoring the other notices. */
+  const states = () =>
+    notices.filter((n): n is Extract<MapNotice, { kind: 'locate' }> => n.kind === 'locate').map(n => n.state);
 
   beforeEach(() => {
     target = document.createElement('div');
     document.body.appendChild(target);
-    states = [];
+    notices = [];
     watch = {};
   });
 
@@ -118,7 +160,19 @@ describe('OlMapController', () => {
   }
 
   function create(): OlMapController {
-    return new OlMapController(target, collection, state => states.push(state));
+    return new OlMapController(target, collection, notice => notices.push(notice));
+  }
+
+  /** Layers of the OpenLayers map, to check what is shown without rendering. */
+  function layers(controller: OlMapController) {
+    return (controller as unknown as { map: OlMap }).map.getLayers().getArray();
+  }
+
+  function imagerySource(controller: OlMapController): XYZ {
+    const sources = layers(controller)
+      .map(layer => (layer as TileLayer<XYZ>).getSource())
+      .filter((source): source is XYZ => !!source && `${source.getUrls?.()?.[0]}`.includes('World_Imagery'));
+    return sources[0];
   }
 
   it('renders into the target and can be disposed', () => {
@@ -143,7 +197,7 @@ describe('OlMapController', () => {
 
     controller.locate();
 
-    expect(states).toEqual(['unsupported']);
+    expect(states()).toEqual(['unsupported']);
     controller.dispose();
   });
 
@@ -155,7 +209,7 @@ describe('OlMapController', () => {
     fix(12.55, 42.85);
     controller.locate();
 
-    expect(states).toEqual(['searching', 'active', 'active']);
+    expect(states()).toEqual(['searching', 'active', 'active']);
     controller.dispose();
   });
 
@@ -166,7 +220,57 @@ describe('OlMapController', () => {
     controller.locate();
     watch.error!({ code: 1, message: 'denied', PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 } as GeolocationPositionError);
 
-    expect(states).toEqual(['searching', 'denied']);
+    expect(states()).toEqual(['searching', 'denied']);
+    controller.dispose();
+  });
+
+  it('adds the satellite layers only when they are first shown', () => {
+    const controller = create();
+    const visible = () => layers(controller).filter(layer => layer.getVisible()).length;
+
+    expect(layers(controller).length).toBe(3); // street, territory, position
+    expect(visible()).toBe(3);
+
+    controller.setBaseLayer('satellite');
+
+    expect(layers(controller).length).toBe(5); // imagery and its labels, street hidden
+    expect(visible()).toBe(4);
+
+    controller.setBaseLayer('street');
+
+    expect(layers(controller).length).toBe(5);
+    expect(visible()).toBe(3);
+    controller.dispose();
+  });
+
+  it('returns to the street map when the imagery never loads a tile', () => {
+    const controller = create();
+    controller.setBaseLayer('satellite');
+    const imagery = imagerySource(controller);
+
+    imagery.dispatchEvent('tileloaderror');
+    imagery.dispatchEvent('tileloaderror');
+    expect(notices).toEqual([]);
+
+    imagery.dispatchEvent('tileloaderror');
+
+    expect(notices).toEqual([{ kind: 'satelliteUnavailable' }]);
+    expect(layers(controller)[0].getVisible()).toBe(true);
+    controller.dispose();
+  });
+
+  it('keeps the imagery when the tiles do load', () => {
+    const controller = create();
+    controller.setBaseLayer('satellite');
+    const imagery = imagerySource(controller);
+
+    imagery.dispatchEvent('tileloadend');
+    for (let i = 0; i < 5; i++) {
+      imagery.dispatchEvent('tileloaderror');
+    }
+
+    expect(notices).toEqual([]);
+    expect(layers(controller)[0].getVisible()).toBe(false);
     controller.dispose();
   });
 

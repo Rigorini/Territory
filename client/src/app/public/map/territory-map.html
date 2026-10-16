@@ -9,8 +9,21 @@
           [matTooltip]="'public.myPosition' | translate" [attr.aria-label]="'public.myPosition' | translate">
     <mat-icon>{{ icons[locateState()] }}</mat-icon>
   </button>
+  <button mat-mini-fab type="button" (click)="toggleBaseLayer()" [class.active]="baseLayer() === 'satellite'"
+          [matTooltip]="(baseLayer() === 'street' ? 'public.showSatellite' : 'public.showStreet') | translate"
+          [attr.aria-label]="(baseLayer() === 'street' ? 'public.showSatellite' : 'public.showStreet') | translate"
+          [attr.aria-pressed]="baseLayer() === 'satellite'">
+    <mat-icon>{{ basemapIcons[baseLayer()] }}</mat-icon>
+  </button>
 </div>
 
-@if (locateState() === 'denied' || locateState() === 'unsupported') {
-  <p class="notice" role="status">{{ 'public.locate.' + locateState() | translate }}</p>
+@if (satelliteUnavailable() || locateState() === 'denied' || locateState() === 'unsupported') {
+  <div class="notices">
+    @if (satelliteUnavailable()) {
+      <p class="notice" role="status">{{ 'public.satelliteUnavailable' | translate }}</p>
+    }
+    @if (locateState() === 'denied' || locateState() === 'unsupported') {
+      <p class="notice" role="status">{{ 'public.locate.' + locateState() | translate }}</p>
+    }
+  </div>
 }

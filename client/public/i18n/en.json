@@ -319,6 +319,9 @@
     "mapLabel": "Territory map",
     "resetView": "Show the whole territory",
     "myPosition": "My location",
+    "showSatellite": "Show the satellite map",
+    "showStreet": "Back to the street map",
+    "satelliteUnavailable": "Satellite map unavailable: the street map has been restored.",
     "locate": {
       "denied": "Location unavailable: allow location access in your browser settings.",
       "unsupported": "This device does not support geolocation."
