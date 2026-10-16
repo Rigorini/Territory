@@ -172,6 +172,13 @@
     "all": "Tutti",
     "noResults": "Nessun risultato",
     "close": "Chiudi",
+    "back": "Indietro",
+    "itemsPerPage": "Elementi per pagina",
+    "pageRange": "{{page}} di {{total}}",
+    "firstPage": "Prima pagina",
+    "previousPage": "Pagina precedente",
+    "nextPage": "Pagina successiva",
+    "lastPage": "Ultima pagina",
     "loading": "Caricamento…"
   },
   "errors": {
@@ -295,6 +302,7 @@
     "returnMessage": "Territorio {{number}} – {{name}}, assegnato a {{publisher}}.",
     "returned": "Riconsegna registrata.",
     "history": "Storico assegnazioni",
+    "seeAll": "Vedi tutte",
     "historyTitle": "Storico del territorio {{number}} – {{name}}",
     "historyEmpty": "Nessuna assegnazione registrata.",
     "editDates": "Modifica date",

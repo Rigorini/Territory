@@ -11,14 +11,16 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AssignmentsApi, OpenAssignmentDto, ShareLinkDto, TerritoryStatusDto } from './assignments.api';
 import { AssignDialog, AssignDialogData } from './assign-dialog';
 import { averageFrequency, elapsedDays, elapsedTime, Frequency, frequencyDays } from './frequency';
-import { HistoryDialog, HistoryDialogData } from './history-dialog';
+import { HISTORY_DIALOG_CONFIG, HistoryDialog, HistoryDialogData } from './history-dialog';
 import { ReturnDialog, ReturnDialogData } from './return-dialog';
 import { ShareDialog, ShareDialogData } from './share-dialog';
 import { PublisherDto, PublishersApi } from '../publishers/publishers.api';
 import { ColumnFilter, FilterOption } from '../shared/column-filter';
 import { Feedback } from '../shared/feedback';
 import { formatDate } from '../shared/format';
+import { ListPaginator } from '../shared/list-paginator';
 import { ListResource } from '../shared/list-resource';
+import { Paging } from '../shared/paging';
 import { TableState } from '../shared/table-state';
 
 type TerritoryStatus = 'assigned' | 'available';
@@ -28,7 +30,7 @@ type TerritoryStatus = 'assigned' | 'available';
   selector: 'app-assignments-page',
   imports: [
     MatTableModule, MatSortModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatSelectModule,
-    MatTooltipModule, MatProgressBarModule, TranslatePipe, ColumnFilter,
+    MatTooltipModule, MatProgressBarModule, TranslatePipe, ColumnFilter, ListPaginator,
   ],
   templateUrl: './assignments-page.html',
 })
@@ -73,7 +75,7 @@ export class AssignmentsPage implements OnInit {
       name: (s: TerritoryStatusDto) => s.name,
       status: (s: TerritoryStatusDto) => statusOf(s),
       publisher: (s: TerritoryStatusDto) => s.assignment?.publisherName ?? '',
-      date: (s: TerritoryStatusDto) => formatOptionalDate(dateOf(s)),
+      date: (s: TerritoryStatusDto) => dateText(s),
     }),
     exactFilters: ['municipality', 'number', 'status'],
     sort: {
@@ -88,6 +90,7 @@ export class AssignmentsPage implements OnInit {
     },
     initialSort: { active: 'date', direction: 'desc' },
   });
+  protected readonly paging = new Paging(this.table.rows);
 
   ngOnInit(): void {
     void this.statuses.reload();
@@ -98,7 +101,7 @@ export class AssignmentsPage implements OnInit {
   }
 
   protected date(row: TerritoryStatusDto): string {
-    return formatOptionalDate(dateOf(row));
+    return dateText(row);
   }
 
   /** Time elapsed from the date shown in the date column (assignment or last return). */
@@ -166,7 +169,8 @@ export class AssignmentsPage implements OnInit {
   }
 
   protected async showHistory(territory: TerritoryStatusDto): Promise<void> {
-    await this.feedback.open<HistoryDialog, HistoryDialogData, void>(HistoryDialog, { territory });
+    await this.feedback.open<HistoryDialog, HistoryDialogData, void>(
+      HistoryDialog, { territory }, HISTORY_DIALOG_CONFIG);
     // Dates may have been corrected in the history.
     await this.statuses.reload();
   }
@@ -194,6 +198,8 @@ function dateOf(row: TerritoryStatusDto): string | null {
   return row.assignment?.assignedAt ?? row.lastReturnedAt;
 }
 
-function formatOptionalDate(value: string | null): string {
+/** Date column text: blank without a date, so that the cell stays empty. */
+function dateText(row: TerritoryStatusDto): string {
+  const value = dateOf(row);
   return value ? formatDate(value) : '';
 }

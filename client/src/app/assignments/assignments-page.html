@@ -1,6 +1,6 @@
 <div class="page-head">
   <h2>{{ 'nav.assignments' | translate }}</h2>
-  <div class="mobile-sort">
+  <div class="mobile-flex mobile-sort">
     <mat-form-field class="sort-field" appearance="outline" subscriptSizing="dynamic">
       <mat-label>{{ 'common.sortBy' | translate }}</mat-label>
       <mat-select [value]="table.sort().active" (selectionChange)="sortBy($event.value)">
@@ -23,7 +23,7 @@
 }
 
 <div class="table-wrap">
-  <table mat-table [dataSource]="table.rows()" matSort matSortActive="date" matSortDirection="desc"
+  <table mat-table [dataSource]="paging.rows()" matSort matSortActive="date" matSortDirection="desc"
          (matSortChange)="table.onSort($event)" class="responsive-table pinned-filters"
          [class.filters-open]="filtersOpen()">
 
@@ -175,3 +175,5 @@
     </tr>
   </table>
 </div>
+
+<app-list-paginator [paging]="paging" />

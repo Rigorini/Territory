@@ -1,14 +1,17 @@
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
+import { MatPaginator } from '@angular/material/paginator';
 import { provideTranslateService } from '@ngx-translate/core';
 import { AssignmentsApi, OpenAssignmentDto, TerritoryStatusDto } from './assignments.api';
 import { AssignmentsPage } from './assignments-page';
 import { AssignDialog } from './assign-dialog';
-import { HistoryDialog } from './history-dialog';
+import { HISTORY_DIALOG_CONFIG, HistoryDialog } from './history-dialog';
 import { ReturnDialog } from './return-dialog';
 import { ShareDialog } from './share-dialog';
 import { PublishersApi } from '../publishers/publishers.api';
 import { Feedback } from '../shared/feedback';
+import { Paging } from '../shared/paging';
 import { TableState } from '../shared/table-state';
 
 const open: OpenAssignmentDto = { id: 7, publisherId: 2, publisherName: 'Rossi Mario', assignedAt: '2025-03-04T10:00:00Z' };
@@ -31,8 +34,10 @@ interface PageApi {
   showHistory(t: TerritoryStatusDto): Promise<void>;
 }
 
-async function setup(options: { dialogResult?: unknown; confirmed?: boolean; publishers?: unknown } = {}) {
-  const api = { list: vi.fn().mockResolvedValue(statuses), renewLink: vi.fn().mockResolvedValue(link) };
+async function setup(
+  options: { dialogResult?: unknown; confirmed?: boolean; publishers?: unknown; territories?: TerritoryStatusDto[] } = {},
+) {
+  const api = { list: vi.fn().mockResolvedValue(options.territories ?? statuses), renewLink: vi.fn().mockResolvedValue(link) };
   const publishersApi = { list: vi.fn().mockResolvedValue(options.publishers ?? publishers) };
   const feedback = {
     open: vi.fn().mockResolvedValue(options.dialogResult),
@@ -115,6 +120,48 @@ describe('AssignmentsPage', () => {
     expect(page.table.rows().map(s => s.territoryId)).toEqual([1, 2, 3]);
     page.table.onSort({ active: 'elapsed', direction: 'desc' });
     expect(page.table.rows()[0].territoryId).toBe(3);
+  });
+
+  it('paginates in pages of ten, twenty-five and fifty', async () => {
+    const many = Array.from({ length: 24 }, (_, i) => ({
+      ...statuses[0], territoryId: i + 1, number: i + 1, name: `T${i + 1}`,
+    }));
+    const { fixture, page } = await setup({ territories: many });
+    const paginator = fixture.debugElement.query(By.directive(MatPaginator)).injector.get(MatPaginator);
+    const paging = (page as unknown as { paging: Paging<TerritoryStatusDto> }).paging;
+    const shown = () => (fixture.nativeElement as HTMLElement).querySelectorAll('tr.mat-mdc-row').length;
+
+    expect(paginator.length).toBe(24);
+    expect(paginator.pageSizeOptions).toEqual([10, 25, 50]);
+    expect(shown()).toBe(10);
+
+    paging.onPage({ pageIndex: 2, pageSize: 10 });
+    fixture.detectChanges();
+    expect(shown()).toBe(4);
+
+    paging.onPage({ pageIndex: 0, pageSize: 25 });
+    fixture.detectChanges();
+    expect(shown()).toBe(24);
+
+    // Filtering shortens the list below the current page: it follows instead of staying empty.
+    paging.onPage({ pageIndex: 2, pageSize: 10 });
+    fixture.detectChanges();
+    page.table.setFilter('name', 'T1');
+    fixture.detectChanges();
+    expect(paging.index()).toBe(1);
+    expect(shown()).toBe(1);
+  });
+
+  it('shows the sorting and filter controls only on phones', async () => {
+    const { fixture } = await setup();
+    const head = (fixture.nativeElement as HTMLElement).querySelector('.page-head') as HTMLElement;
+    const controls = head.querySelector('.mobile-sort') as HTMLElement;
+
+    // mobile-flex hides the block by default: only the phone media query shows it.
+    expect(controls.classList).toContain('mobile-flex');
+    expect(controls.querySelector('mat-select')).not.toBeNull();
+    expect(controls.textContent).toContain('common.filters');
+    expect(head.querySelectorAll(':scope > button').length).toBe(0);
   });
 
   it('keeps the municipality and status filters visible when the phone panel is collapsed', async () => {
@@ -247,7 +294,7 @@ describe('AssignmentsPage', () => {
 
     await page.showHistory(statuses[1]);
 
-    expect(feedback.open).toHaveBeenCalledWith(HistoryDialog, { territory: statuses[1] });
+    expect(feedback.open).toHaveBeenCalledWith(HistoryDialog, { territory: statuses[1] }, HISTORY_DIALOG_CONFIG);
     expect(api.list).toHaveBeenCalledTimes(loads + 1);
   });
 });

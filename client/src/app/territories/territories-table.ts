@@ -9,12 +9,17 @@ import { MunicipalityDto, TerritoriesApi, TerritoryDto } from './territories.api
 import { TerritoryDialog, TerritoryDialogData } from './territory-dialog';
 import { ColumnFilter, FilterOption } from '../shared/column-filter';
 import { Feedback } from '../shared/feedback';
+import { ListPaginator } from '../shared/list-paginator';
+import { Paging } from '../shared/paging';
 import { TableState } from '../shared/table-state';
 
 /** Territories with per-column filters; emits changed after a save or delete. */
 @Component({
   selector: 'app-territories-table',
-  imports: [MatTableModule, MatSortModule, MatButtonModule, MatIconModule, MatTooltipModule, TranslatePipe, ColumnFilter],
+  imports: [
+    MatTableModule, MatSortModule, MatButtonModule, MatIconModule, MatTooltipModule, TranslatePipe,
+    ColumnFilter, ListPaginator,
+  ],
   templateUrl: './territories-table.html',
 })
 export class TerritoriesTable {
@@ -41,6 +46,7 @@ export class TerritoriesTable {
     sort: { municipality: t => [t.municipalityName, t.number], number: t => t.number, name: t => t.name },
     initialSort: { active: 'municipality', direction: 'asc' },
   });
+  protected readonly paging = new Paging(this.table.rows);
 
   protected async openDialog(territory?: TerritoryDto): Promise<void> {
     const data: TerritoryDialogData = { territory, municipalities: this.municipalities() };

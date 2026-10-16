@@ -9,7 +9,7 @@
 </div>
 
 <div class="table-wrap">
-  <table mat-table [dataSource]="table.rows()" matSort matSortActive="municipality" matSortDirection="asc"
+  <table mat-table [dataSource]="paging.rows()" matSort matSortActive="municipality" matSortDirection="asc"
          (matSortChange)="table.onSort($event)" class="responsive-table" [class.filters-open]="filtersOpen()">
 
     <ng-container matColumnDef="municipality">
@@ -86,3 +86,5 @@
     </tr>
   </table>
 </div>
+
+<app-list-paginator [paging]="paging" />

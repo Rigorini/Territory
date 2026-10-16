@@ -14,6 +14,11 @@ export function formatDate(value: string): string {
   return formatDay(new Date(value));
 }
 
+/** Day of an optional instant: a dash when the API has no value (e.g. an open assignment). */
+export function formatOptionalDate(value: string | null): string {
+  return value ? formatDate(value) : '—';
+}
+
 /** Strict dd/MM/yyyy (also with "." or "-"); null for other formats and impossible days such as 31/02. */
 export function parseDay(text: string): Date | null {
   const match = DAY_PATTERN.exec(text);

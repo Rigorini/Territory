@@ -42,6 +42,10 @@ export const routes: Routes = [
         path: 'publishers', canActivate: [roleGuard(MANAGER_ROLES)],
         loadComponent: () => import('./publishers/publishers-page').then(m => m.PublishersPage),
       },
+      {
+        path: 'assignments/:territoryId/history',
+        loadComponent: () => import('./assignments/history-page').then(m => m.HistoryPage),
+      },
       { path: 'assignments', loadComponent: () => import('./assignments/assignments-page').then(m => m.AssignmentsPage) },
       {
         path: 'export', canActivate: [roleGuard(MANAGER_ROLES)],

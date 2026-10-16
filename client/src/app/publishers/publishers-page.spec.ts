@@ -3,7 +3,10 @@ import { provideTranslateService } from '@ngx-translate/core';
 import { PublisherDto, PublishersApi } from './publishers.api';
 import { PublishersPage } from './publishers-page';
 import { PublisherDialog } from './publisher-dialog';
+import { By } from '@angular/platform-browser';
+import { MatPaginator } from '@angular/material/paginator';
 import { Feedback } from '../shared/feedback';
+import { Paging } from '../shared/paging';
 import { TableState } from '../shared/table-state';
 
 const publishers: PublisherDto[] = [
@@ -14,12 +17,13 @@ const publishers: PublisherDto[] = [
 
 interface PageApi {
   table: TableState<PublisherDto>;
+  paging: Paging<PublisherDto>;
   openDialog(publisher?: PublisherDto): Promise<void>;
   confirmDelete(publisher: PublisherDto): Promise<void>;
 }
 
-async function setup(dialogResult: unknown, confirmed = true) {
-  const api = { list: vi.fn().mockResolvedValue(publishers), delete: vi.fn().mockResolvedValue(undefined) };
+async function setup(dialogResult: unknown, confirmed = true, items: PublisherDto[] = publishers) {
+  const api = { list: vi.fn().mockResolvedValue(items), delete: vi.fn().mockResolvedValue(undefined) };
   const feedback = {
     open: vi.fn().mockResolvedValue(dialogResult),
     confirm: vi.fn().mockResolvedValue(confirmed),
@@ -50,6 +54,35 @@ describe('PublishersPage', () => {
 
     page.table.onSort({ active: 'firstName', direction: 'asc' });
     expect(page.table.rows().map(p => p.id)).toEqual([2, 3, 1]);
+  });
+
+  it('paginates in pages of ten, twenty-five and fifty', async () => {
+    const many = Array.from({ length: 30 }, (_, i) => ({
+      id: i + 1, firstName: `Nome ${i + 1}`, lastName: `Cognome ${String(i + 1).padStart(2, '0')}`,
+    }));
+    const { fixture, page } = await setup(undefined, true, many);
+    const paginator = fixture.debugElement.query(By.directive(MatPaginator)).injector.get(MatPaginator);
+    const shown = () => (fixture.nativeElement as HTMLElement).querySelectorAll('tr.mat-mdc-row').length;
+
+    expect(paginator.length).toBe(30);
+    expect(paginator.pageSizeOptions).toEqual([10, 25, 50]);
+    expect(paginator.pageSize).toBe(10);
+    expect(shown()).toBe(10);
+
+    page.paging.onPage({ pageIndex: 0, pageSize: 50 });
+    fixture.detectChanges();
+    expect(shown()).toBe(30);
+
+    page.paging.onPage({ pageIndex: 2, pageSize: 10 });
+    fixture.detectChanges();
+    expect(shown()).toBe(10);
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Cognome 21');
+
+    // Filtering shortens the list below the current page: it follows instead of staying empty.
+    page.table.setFilter('lastName', 'Cognome 0');
+    fixture.detectChanges();
+    expect(page.paging.index()).toBe(0);
+    expect(shown()).toBe(9);
   });
 
   it('filters by each column', async () => {

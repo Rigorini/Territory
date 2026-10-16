@@ -18,18 +18,18 @@
         </tr>
       </thead>
       <tbody>
-        @for (h of history.items(); track h.id; let i = $index) {
+        @for (h of recent(); track h.id) {
           <tr>
             <td class="publisher">{{ h.publisherName }}</td>
             <td [attr.data-label]="'assignments.assignedAt' | translate">{{ formatDate(h.assignedAt) }}</td>
             <td [attr.data-label]="'assignments.returnedAt' | translate">{{ formatDate(h.returnedAt) }}</td>
             <td [attr.data-label]="'assignments.returnedBy' | translate">{{ h.returnedByName ?? (h.returnedBy ? ('assignments.returnedByValues.' + h.returnedBy | translate) : '—') }}</td>
-            <td>
-              <button mat-icon-button type="button" (click)="editDates(i)" [matTooltip]="'assignments.editDates' | translate"
+            <td class="actions">
+              <button mat-icon-button type="button" (click)="history.editDates(h)" [matTooltip]="'assignments.editDates' | translate"
                       [attr.aria-label]="'assignments.editDates' | translate">
                 <mat-icon>edit_calendar</mat-icon>
               </button>
-              <button mat-icon-button type="button" (click)="confirmDelete(h)" [matTooltip]="'common.delete' | translate"
+              <button mat-icon-button type="button" (click)="history.confirmDelete(h)" [matTooltip]="'common.delete' | translate"
                       [attr.aria-label]="'common.delete' | translate">
                 <mat-icon>delete</mat-icon>
               </button>
@@ -42,5 +42,6 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="seeAll()">{{ 'assignments.seeAll' | translate }}</button>
   <button mat-button type="button" mat-dialog-close>{{ 'common.close' | translate }}</button>
 </mat-dialog-actions>

@@ -23,6 +23,10 @@ table {
   }
 }
 
+td.actions {
+  white-space: nowrap;
+}
+
 @media (max-width: 599px) {
   table,
   tbody,

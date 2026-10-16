@@ -10,14 +10,16 @@ import { PublisherDto, PublishersApi } from './publishers.api';
 import { PublisherDialog, PublisherDialogData, PublisherSaved } from './publisher-dialog';
 import { ColumnFilter } from '../shared/column-filter';
 import { Feedback } from '../shared/feedback';
+import { ListPaginator } from '../shared/list-paginator';
 import { ListResource } from '../shared/list-resource';
+import { Paging } from '../shared/paging';
 import { TableState } from '../shared/table-state';
 
 @Component({
   selector: 'app-publishers-page',
   imports: [
     MatTableModule, MatSortModule, MatButtonModule, MatIconModule, MatTooltipModule,
-    MatProgressBarModule, TranslatePipe, ColumnFilter,
+    MatProgressBarModule, TranslatePipe, ColumnFilter, ListPaginator,
   ],
   templateUrl: './publishers-page.html',
 })
@@ -38,6 +40,7 @@ export class PublishersPage implements OnInit {
     sort: { lastName: p => [p.lastName, p.firstName], firstName: p => [p.firstName, p.lastName] },
     initialSort: { active: 'lastName', direction: 'asc' },
   });
+  protected readonly paging = new Paging(this.table.rows);
 
   ngOnInit(): void {
     void this.publishers.reload();

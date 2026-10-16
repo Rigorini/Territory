@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Type } from '@angular/core';
+import { By } from '@angular/platform-browser';
+import { MatPaginator } from '@angular/material/paginator';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MunicipalitiesApi, MunicipalityDto, TerritoriesApi, TerritoryDto } from './territories.api';
 import { TerritoriesPage } from './territories-page';
@@ -8,6 +10,7 @@ import { MunicipalitiesTable } from './municipalities-table';
 import { TerritoryDialog } from './territory-dialog';
 import { MunicipalityDialog } from './municipality-dialog';
 import { Feedback } from '../shared/feedback';
+import { Paging } from '../shared/paging';
 import { TableState } from '../shared/table-state';
 
 const municipalities: MunicipalityDto[] = [
@@ -101,6 +104,36 @@ describe('TerritoriesTable', () => {
     table.table.onSort({ active: 'name', direction: 'desc' });
     table.table.setFilter('number', '');
     expect(table.table.rows().map(t => t.name)).toEqual(['T10', 'T2', 'T1']);
+  });
+
+  it('paginates in pages of ten, twenty-five and fifty', () => {
+    const many = Array.from({ length: 24 }, (_, i) => territory(i + 1, 'Giano', i + 1));
+    configure(mockFeedback(undefined));
+    const { fixture } = createTable<TerritoriesTable, TerritoryDto>(
+      TerritoriesTable, { territories: many, municipalities });
+    const paging = (fixture.componentInstance as unknown as { paging: Paging<TerritoryDto> }).paging;
+    const paginator = fixture.debugElement.query(By.directive(MatPaginator)).injector.get(MatPaginator);
+    const shown = () => (fixture.nativeElement as HTMLElement).querySelectorAll('tr.mat-mdc-row').length;
+
+    expect(paginator.length).toBe(24);
+    expect(paginator.pageSizeOptions).toEqual([10, 25, 50]);
+    expect(shown()).toBe(10);
+
+    paging.onPage({ pageIndex: 2, pageSize: 10 });
+    fixture.detectChanges();
+    expect(shown()).toBe(4);
+
+    paging.onPage({ pageIndex: 0, pageSize: 25 });
+    fixture.detectChanges();
+    expect(shown()).toBe(24);
+
+    // Filtering shortens the list below the current page: it follows instead of staying empty.
+    paging.onPage({ pageIndex: 2, pageSize: 10 });
+    fixture.detectChanges();
+    (fixture.componentInstance as unknown as { table: TableState<TerritoryDto> }).table.setFilter('name', 'T1');
+    fixture.detectChanges();
+    expect(paging.index()).toBe(1);
+    expect(shown()).toBe(1);
   });
 
   it('opens the dialog with the municipalities and notifies a save', async () => {

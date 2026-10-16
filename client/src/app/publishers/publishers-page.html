@@ -13,7 +13,7 @@
 }
 
 <div class="table-wrap">
-  <table mat-table [dataSource]="table.rows()" matSort matSortActive="lastName" matSortDirection="asc"
+  <table mat-table [dataSource]="paging.rows()" matSort matSortActive="lastName" matSortDirection="asc"
          (matSortChange)="table.onSort($event)" class="responsive-table" [class.filters-open]="filtersOpen()">
 
     <ng-container matColumnDef="lastName">
@@ -66,3 +66,5 @@
     </tr>
   </table>
 </div>
+
+<app-list-paginator [paging]="paging" />

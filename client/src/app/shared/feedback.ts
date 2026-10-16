@@ -1,6 +1,6 @@
 import { ComponentType } from '@angular/cdk/portal';
 import { inject, Injectable } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
@@ -26,9 +26,14 @@ export class Feedback {
     return (await this.open<ConfirmDialog, ConfirmDialogData, boolean>(ConfirmDialog, data)) === true;
   }
 
-  /** Opens a dialog and resolves with its result (undefined when dismissed). */
-  open<TComponent, TData, TResult>(component: ComponentType<TComponent>, data: TData): Promise<TResult | undefined> {
-    const ref = this.dialog.open<TComponent, TData, TResult>(component, { data });
+  /**
+   * Opens a dialog and resolves with its result (undefined when dismissed).
+   * The optional config carries what the component cannot know from its own template (e.g. sizing).
+   */
+  open<TComponent, TData, TResult>(
+    component: ComponentType<TComponent>, data: TData, config: MatDialogConfig<TData> = {},
+  ): Promise<TResult | undefined> {
+    const ref = this.dialog.open<TComponent, TData, TResult>(component, { ...config, data });
     return firstValueFrom(ref.afterClosed());
   }
 

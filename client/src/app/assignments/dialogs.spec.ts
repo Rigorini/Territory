@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Type } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { provideRouter, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { MatAutocomplete } from '@angular/material/autocomplete';
@@ -44,6 +45,7 @@ function setup<T>(component: Type<T>, data: unknown, extra: { provide: unknown; 
     providers: [
       provideTranslateService(),
       provideDayDateAdapter(),
+      provideRouter([]),
       { provide: AssignmentsApi, useValue: api },
       { provide: Feedback, useValue: feedback },
       { provide: MatDialogRef, useValue: dialogRef },
@@ -249,6 +251,14 @@ describe('ShareDialog', () => {
   });
 });
 
+interface HistoryDialogApi {
+  history: {
+    editDates(entry: unknown): Promise<void>;
+    confirmDelete(entry: unknown): Promise<void>;
+  };
+  ngOnInit(): Promise<void>;
+}
+
 describe('HistoryDialog', () => {
   it('loads the history and formats dates', async () => {
     const { api, component, fixture } = setup(HistoryDialog, { territory });
@@ -283,13 +293,13 @@ describe('HistoryDialog', () => {
     ];
     const { api, component, feedback, fixture } = setup(HistoryDialog, { territory });
     api.history.mockResolvedValue(items);
-    const dialog = component as unknown as { ngOnInit(): Promise<void>; editDates(index: number): Promise<void> };
+    const dialog = component as unknown as HistoryDialogApi;
     await dialog.ngOnInit();
     fixture.detectChanges();
     feedback.open.mockResolvedValueOnce(undefined).mockResolvedValueOnce(true);
     const loads = api.history.mock.calls.length;
 
-    await dialog.editDates(1);
+    await dialog.history.editDates(items[1]);
     expect(feedback.open).toHaveBeenCalledWith(EditDatesDialog, { territory, entry: items[1], previous: items[2], next: items[0] });
     expect(api.history).toHaveBeenCalledTimes(loads);
 
@@ -306,19 +316,43 @@ describe('HistoryDialog', () => {
     ];
     const { api, component, feedback, fixture } = setup(HistoryDialog, { territory });
     api.history.mockResolvedValue(items);
-    const dialog = component as unknown as { ngOnInit(): Promise<void>; confirmDelete(e: unknown): Promise<void> };
+    const dialog = component as unknown as HistoryDialogApi;
     await dialog.ngOnInit();
     fixture.detectChanges();
     const loads = api.history.mock.calls.length;
 
     feedback.confirm.mockResolvedValueOnce(false);
-    await dialog.confirmDelete(items[0]);
+    await dialog.history.confirmDelete(items[0]);
     expect(api.delete).not.toHaveBeenCalled();
 
-    await dialog.confirmDelete(items[0]);
+    await dialog.history.confirmDelete(items[0]);
     expect(api.delete).toHaveBeenCalledWith(3);
     expect(feedback.attempt).toHaveBeenCalledWith(expect.any(Function), 'assignments.deleted');
     expect(api.history).toHaveBeenCalledTimes(loads + 1);
+  });
+
+  it('shows only the latest assignments, with the link to the full history', async () => {
+    const items = Array.from({ length: 7 }, (_, i) => ({
+      id: 7 - i, publisherName: `Proclamatore ${i + 1}`, assignedAt: '2025-03-04T10:00:00Z',
+      returnedAt: null, returnedBy: null, returnedByName: null,
+    }));
+    const { api, component, dialogRef, fixture } = setup(HistoryDialog, { territory });
+    api.history.mockResolvedValue(items);
+    await (component as unknown as HistoryDialogApi).ngOnInit();
+    fixture.detectChanges();
+
+    const rows = [...fixture.nativeElement.querySelectorAll('tbody tr')] as HTMLElement[];
+    expect(rows.length).toBe(5);
+    expect(rows[0].textContent).toContain('Proclamatore 1');
+    expect(rows[4].textContent).toContain('Proclamatore 5');
+
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    const seeAll = [...fixture.nativeElement.querySelectorAll('button')] as HTMLButtonElement[];
+    seeAll.find(b => b.textContent!.includes('assignments.seeAll'))!.click();
+
+    expect(navigate).toHaveBeenCalledWith(['/admin/assignments', 1, 'history']);
+    expect(dialogRef.close).toHaveBeenCalled();
   });
 });
 
