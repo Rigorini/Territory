@@ -1,9 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -21,7 +21,7 @@ export interface AssignDialogData {
 @Component({
   selector: 'app-assign-dialog',
   imports: [
-    ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule,
+    ReactiveFormsModule, MatAutocompleteModule, MatDialogModule, MatFormFieldModule, MatInputModule,
     MatDatepickerModule, MatButtonModule, TranslatePipe,
   ],
   templateUrl: './assign-dialog.html',
@@ -38,6 +38,19 @@ export class AssignDialog extends FormDialog<ShareLinkDto> {
     assignedAt: [this.today as Date | null, dayRangeValidator(this.minDay, 'beforeLastReturn')],
   });
 
+  private readonly names = new Map<number, string>(
+    this.data.publishers.map(p => [p.id, `${p.lastName} ${p.firstName}`]));
+  /** Text typed in the publisher field, which keeps the selected id as its value. */
+  protected readonly query = signal('');
+  protected readonly publishers = computed(() => filterPublishers(this.data.publishers, this.query()));
+
+  /** Shows the selected publisher's name in the field, which holds its id. */
+  protected readonly publisherName = (id: number | null): string => (id == null ? '' : this.names.get(id) ?? '');
+
+  protected onQuery(event: Event): void {
+    this.query.set((event.target as HTMLInputElement).value);
+  }
+
   protected send(): Promise<ShareLinkDto> {
     const { publisherId, assignedAt } = this.form.getRawValue();
     return this.api.assign({
@@ -46,4 +59,12 @@ export class AssignDialog extends FormDialog<ShareLinkDto> {
       assignedAt: eventInstant(assignedAt as Date),
     });
   }
+}
+
+/** Publishers whose "lastName firstName" contains the typed text, case-insensitively. */
+function filterPublishers(publishers: readonly PublisherDto[], query: string): readonly PublisherDto[] {
+  const needle = query.trim().toLocaleLowerCase();
+  return needle === ''
+    ? publishers
+    : publishers.filter(p => `${p.lastName} ${p.firstName}`.toLocaleLowerCase().includes(needle));
 }

@@ -22,6 +22,9 @@ const link = { assignmentId: 9, token: 'tok' };
 
 interface PageApi {
   table: TableState<TerritoryStatusDto>;
+  descending(): boolean;
+  sortBy(active: string): void;
+  toggleSortDirection(): void;
   assign(t: TerritoryStatusDto): Promise<void>;
   share(t: TerritoryStatusDto, a: OpenAssignmentDto): Promise<void>;
   registerReturn(t: TerritoryStatusDto, a: OpenAssignmentDto): Promise<void>;
@@ -54,18 +57,19 @@ async function setup(options: { dialogResult?: unknown; confirmed?: boolean; pub
 }
 
 describe('AssignmentsPage', () => {
-  it('lists territories by municipality and number with status actions', async () => {
+  it('lists the most recently moved territories first, with status actions', async () => {
     const { page, fixture } = await setup();
 
-    expect(page.table.rows().map(s => s.territoryId)).toEqual([3, 2, 1]);
+    expect(page.table.sort()).toEqual({ active: 'date', direction: 'desc' });
+    expect(page.table.rows().map(s => s.territoryId)).toEqual([1, 2, 3]);
     const rows = [...fixture.nativeElement.querySelectorAll('tr.mat-mdc-row')] as HTMLElement[];
     expect(rows.length).toBe(3);
-    expect(rows[2].querySelector('.chip')!.classList).toContain('assigned');
-    expect(rows[2].querySelectorAll('button').length).toBe(3);
-    expect(rows[0].querySelectorAll('button').length).toBe(2);
+    expect(rows[0].querySelector('.chip')!.classList).toContain('assigned');
+    expect(rows[0].querySelectorAll('button').length).toBe(3);
+    expect(rows[2].querySelectorAll('button').length).toBe(2);
 
-    page.table.onSort({ active: 'date', direction: 'desc' });
-    expect(page.table.rows().map(s => s.territoryId)).toEqual([1, 2, 3]);
+    page.table.onSort({ active: 'municipality', direction: 'asc' });
+    expect(page.table.rows().map(s => s.territoryId)).toEqual([3, 2, 1]);
     page.table.onSort({ active: 'status', direction: 'asc' });
     expect(page.table.rows().map(s => s.territoryId)).toEqual([1, 3, 2]);
   });
@@ -80,9 +84,86 @@ describe('AssignmentsPage', () => {
   ])('filters by %s', async (column, value, ids) => {
     const { page } = await setup();
 
+    // The expected order is by municipality, independent of the default sorting.
+    page.table.onSort({ active: 'municipality', direction: 'asc' });
     page.table.setFilter(column, value);
 
     expect(page.table.rows().map(s => s.territoryId)).toEqual(ids);
+  });
+
+  it('shows the time elapsed since the date, between the date and the average', async () => {
+    const { fixture } = await setup();
+    const rows = [...fixture.nativeElement.querySelectorAll('tr.mat-mdc-row')] as HTMLElement[];
+    const labels = (row: HTMLElement) =>
+      [...row.querySelectorAll('td')].map(td => td.getAttribute('data-label'));
+    const cells = [...fixture.nativeElement.querySelectorAll('td[data-label="assignments.elapsed"]')] as HTMLElement[];
+
+    expect(labels(rows[0]).indexOf('assignments.elapsed'))
+      .toBe(labels(rows[0]).indexOf('assignments.frequency') - 1);
+    expect(labels(rows[0]).indexOf('assignments.elapsed'))
+      .toBeGreaterThan(labels(rows[0]).indexOf('assignments.date'));
+    // Translations are not loaded in tests, so the cells show the key; the last territory has no date.
+    expect(cells.map(cell => cell.textContent!.trim()))
+      .toEqual(['assignments.elapsedValue', 'assignments.elapsedValue', '—']);
+  });
+
+  it('sorts by the time elapsed', async () => {
+    const { page } = await setup();
+
+    page.table.onSort({ active: 'elapsed', direction: 'asc' });
+
+    expect(page.table.rows().map(s => s.territoryId)).toEqual([1, 2, 3]);
+    page.table.onSort({ active: 'elapsed', direction: 'desc' });
+    expect(page.table.rows()[0].territoryId).toBe(3);
+  });
+
+  it('keeps the municipality and status filters visible when the phone panel is collapsed', async () => {
+    const { fixture } = await setup();
+    const table = fixture.nativeElement.querySelector('table') as HTMLElement;
+    const pinned = [...fixture.nativeElement.querySelectorAll('th.pinned')] as HTMLElement[];
+
+    expect(table.classList).toContain('pinned-filters');
+    expect(pinned.map(th => th.getAttribute('data-label')))
+      .toEqual(['territories.municipality', 'assignments.status']);
+    // Both are full width on a phone: the municipality select and the row of status buttons.
+    expect(pinned.every(th => th.classList.contains('wide'))).toBe(true);
+  });
+
+  it('filters the status from the phone buttons', async () => {
+    const { fixture, page } = await setup();
+    const buttons = [...fixture.nativeElement.querySelectorAll('.status-button')] as HTMLButtonElement[];
+    const selected = () => buttons.filter(b => b.classList.contains('selected')).map(b => b.getAttribute('data-status'));
+    const click = (status: string) => {
+      buttons.find(b => b.getAttribute('data-status') === status)!.click();
+      fixture.detectChanges();
+    };
+
+    expect(buttons.map(b => b.getAttribute('data-status'))).toEqual(['all', 'assigned', 'available']);
+    expect(buttons.map(b => b.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false']);
+
+    click('assigned');
+    expect(page.table.filter('status')).toBe('assigned');
+    expect(selected()).toEqual(['assigned']);
+    expect(page.table.rows().map(s => s.territoryId)).toEqual([1]);
+
+    click('all');
+    expect(page.table.filter('status')).toBe('');
+    expect(selected()).toEqual(['all']);
+    expect(page.table.rows().length).toBe(3);
+  });
+
+  it('sorts by date by default and flips the direction from the phone controls', async () => {
+    const { page } = await setup();
+
+    expect(page.descending()).toBe(true);
+
+    page.toggleSortDirection();
+    expect(page.table.sort()).toEqual({ active: 'date', direction: 'asc' });
+    expect(page.table.rows().map(s => s.territoryId)).toEqual([3, 2, 1]);
+    expect(page.descending()).toBe(false);
+
+    page.sortBy('municipality');
+    expect(page.table.sort()).toEqual({ active: 'municipality', direction: 'asc' });
   });
 
   it('sorts by the remaining columns', async () => {

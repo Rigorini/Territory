@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { Type } from '@angular/core';
+import { By } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Clipboard } from '@angular/cdk/clipboard';
+import { MatAutocomplete } from '@angular/material/autocomplete';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { provideTranslateService } from '@ngx-translate/core';
 import { AssignmentsApi, TerritoryStatusDto } from './assignments.api';
@@ -56,6 +58,57 @@ function setup<T>(component: Type<T>, data: unknown, extra: { provide: unknown; 
 
 describe('AssignDialog', () => {
   const data: AssignDialogData = { territory, publishers: [{ id: 2, firstName: 'Mario', lastName: 'Rossi' }] };
+  const many: AssignDialogData = {
+    ...data,
+    publishers: [
+      { id: 2, firstName: 'Mario', lastName: 'Rossi' },
+      { id: 3, firstName: 'Anna', lastName: 'Bianchi' },
+      { id: 4, firstName: 'Luca', lastName: 'Verdi' },
+    ],
+  };
+
+  function setupWithPublishers(dialogData: AssignDialogData) {
+    const result = setup(AssignDialog, dialogData);
+    const element = result.fixture.nativeElement as HTMLElement;
+    const input = element.querySelector('input') as HTMLInputElement;
+    const autocomplete = result.fixture.debugElement.query(By.directive(MatAutocomplete))
+      .injector.get(MatAutocomplete);
+    return {
+      ...result,
+      input,
+      autocomplete,
+      options: () => (result.component as unknown as { publishers(): readonly { id: number }[] })
+        .publishers().map(p => p.id),
+      type: (text: string) => {
+        input.value = text;
+        input.dispatchEvent(new Event('input'));
+        result.fixture.detectChanges();
+      },
+    };
+  }
+
+  it('filters the publishers as the user types', () => {
+    const { autocomplete, options, type } = setupWithPublishers(many);
+
+    expect(autocomplete.requireSelection).toBe(true);
+    expect(options()).toEqual([2, 3, 4]);
+    type('anna');
+    expect(options()).toEqual([3]);
+    type('  RossI  ');
+    expect(options()).toEqual([2]);
+    type('nessuno');
+    expect(options()).toEqual([]);
+  });
+
+  it('shows the selected publisher in the field', async () => {
+    const { component, fixture, input } = setupWithPublishers(data);
+
+    (component as unknown as DialogApi).form.controls['publisherId'].setValue(2);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(input.value).toBe('Rossi Mario');
+  });
 
   it('requires a publisher and rejects days before the last return', async () => {
     const { api, component } = setup(AssignDialog, data);

@@ -165,6 +165,8 @@
     "delete": "Delete",
     "actions": "Actions",
     "filters": "Filters",
+    "sortBy": "Sort by",
+    "reverseSort": "Reverse sort order",
     "filterBy": "Filter by {{column}}",
     "clearFilters": "Clear",
     "all": "All",
@@ -264,6 +266,9 @@
     "frequency": "Every (avg.)",
     "frequencyHint": "Average interval between assignments of the territory over the last year (mo = 30-day months, d = days)",
     "frequencyValue": "{{months}} mo {{days}} d",
+    "elapsed": "Elapsed time",
+    "elapsedHint": "Time since the date shown (mo = 30-day months, d = days)",
+    "elapsedValue": "{{months}} mo {{days}} d",
     "returnedBy": "Returned by",
     "returnedByValues": {
       "publisher": "Publisher (link)",

@@ -2,13 +2,15 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AssignmentsApi, OpenAssignmentDto, ShareLinkDto, TerritoryStatusDto } from './assignments.api';
 import { AssignDialog, AssignDialogData } from './assign-dialog';
-import { averageFrequency, Frequency, frequencyDays } from './frequency';
+import { averageFrequency, elapsedDays, elapsedTime, Frequency, frequencyDays } from './frequency';
 import { HistoryDialog, HistoryDialogData } from './history-dialog';
 import { ReturnDialog, ReturnDialogData } from './return-dialog';
 import { ShareDialog, ShareDialogData } from './share-dialog';
@@ -25,8 +27,8 @@ type TerritoryStatus = 'assigned' | 'available';
 @Component({
   selector: 'app-assignments-page',
   imports: [
-    MatTableModule, MatSortModule, MatButtonModule, MatIconModule, MatTooltipModule,
-    MatProgressBarModule, TranslatePipe, ColumnFilter,
+    MatTableModule, MatSortModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatSelectModule,
+    MatTooltipModule, MatProgressBarModule, TranslatePipe, ColumnFilter,
   ],
   templateUrl: './assignments-page.html',
 })
@@ -35,14 +37,34 @@ export class AssignmentsPage implements OnInit {
   private readonly publishersApi = inject(PublishersApi);
   private readonly feedback = inject(Feedback);
 
-  protected readonly columns = ['municipality', 'number', 'name', 'status', 'publisher', 'date', 'frequency', 'actions'];
+  protected readonly columns = [
+    'municipality', 'number', 'name', 'status', 'publisher', 'date', 'elapsed', 'frequency', 'actions',
+  ];
   protected readonly filterColumns = this.columns.map(c => `f-${c}`);
   protected readonly filtersOpen = signal(false);
-  protected readonly statusOptions: readonly FilterOption[] = (['assigned', 'available'] as const)
-    .map(s => ({ value: s, labelKey: `assignments.statuses.${s}` }));
+  protected readonly statusOptions: readonly { value: string; labelKey: string }[] =
+    (['assigned', 'available'] as const).map(s => ({ value: s, labelKey: `assignments.statuses.${s}` }));
+  /** Status filter on phones: the options as buttons, plus "all" to clear it. */
+  protected readonly statusButtons: readonly { value: string; labelKey: string }[] = [
+    { value: '', labelKey: 'common.all' },
+    ...this.statusOptions,
+  ];
   protected readonly statuses = new ListResource(() => this.api.list(), this.feedback);
   protected readonly municipalityOptions = computed<FilterOption[]>(() =>
     [...new Set(this.statuses.items().map(s => s.municipalityName))].map(value => ({ value })));
+
+  /** Sortable columns, for the header row on desktop and the selector shown on phones. */
+  protected readonly sortOptions: readonly { value: string; labelKey: string }[] = [
+    { value: 'municipality', labelKey: 'territories.municipality' },
+    { value: 'number', labelKey: 'territories.number' },
+    { value: 'name', labelKey: 'territories.name' },
+    { value: 'status', labelKey: 'assignments.status' },
+    { value: 'publisher', labelKey: 'assignments.publisher' },
+    { value: 'date', labelKey: 'assignments.date' },
+    { value: 'elapsed', labelKey: 'assignments.elapsed' },
+    { value: 'frequency', labelKey: 'assignments.frequency' },
+  ];
+  protected readonly descending = computed(() => this.table.sort().direction === 'desc');
 
   protected readonly table = new TableState(this.statuses.items, {
     filters: signal({
@@ -61,9 +83,10 @@ export class AssignmentsPage implements OnInit {
       status: s => [statusOf(s), s.municipalityName, s.number],
       publisher: s => s.assignment?.publisherName ?? '',
       date: s => dateOf(s) ?? '',
+      elapsed: s => elapsedDays(dateOf(s)),
       frequency: s => frequencyDays(s.assignmentsLastYear),
     },
-    initialSort: { active: 'municipality', direction: 'asc' },
+    initialSort: { active: 'date', direction: 'desc' },
   });
 
   ngOnInit(): void {
@@ -78,8 +101,22 @@ export class AssignmentsPage implements OnInit {
     return formatOptionalDate(dateOf(row));
   }
 
+  /** Time elapsed from the date shown in the date column (assignment or last return). */
+  protected elapsed(row: TerritoryStatusDto): Frequency | null {
+    return elapsedTime(dateOf(row));
+  }
+
   protected frequency(row: TerritoryStatusDto): Frequency | null {
     return averageFrequency(row.assignmentsLastYear);
+  }
+
+  /** Sorting from the phone selector: keeps the current direction, ascending by default. */
+  protected sortBy(active: string): void {
+    this.table.onSort({ active, direction: this.descending() ? 'desc' : 'asc' });
+  }
+
+  protected toggleSortDirection(): void {
+    this.table.onSort({ active: this.table.sort().active, direction: this.descending() ? 'asc' : 'desc' });
   }
 
   protected async assign(territory: TerritoryStatusDto): Promise<void> {

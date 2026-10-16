@@ -1,6 +1,12 @@
 // Shared list-page layout: header, status chips and a table with one filter per column.
 // Below 800px rows become cards and the filter row becomes a collapsible panel (toggle: .filters-open).
 
+// Status colours, shared by the table chips and the phone status buttons.
+$available-bg: light-dark(#c8e6c9, #1b5e20);
+$available-fg: light-dark(#1b5e20, #c8e6c9);
+$assigned-bg: light-dark(#ffe0b2, #8a4b00);
+$assigned-fg: light-dark(#7a3e00, #ffe0b2);
+
 .page-head {
   display: flex;
   flex-wrap: wrap;
@@ -32,6 +38,56 @@
 
 .mobile-only {
   display: none !important;
+}
+
+// Phone-only rows of controls: the page-head sorting and the status filter buttons.
+.mobile-flex {
+  display: none;
+}
+
+// Phone status filter: one button per status, coloured like the status chips.
+.status-button {
+  display: inline-flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 0;
+  min-height: 30px;
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  font: var(--mat-sys-label-medium);
+  white-space: nowrap;
+  cursor: pointer;
+
+  &[data-status='available'] {
+    background: $available-bg;
+    color: $available-fg;
+  }
+
+  &[data-status='assigned'] {
+    background: $assigned-bg;
+    color: $assigned-fg;
+  }
+
+  .mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    visibility: hidden;
+  }
+
+  &.selected {
+    border-color: currentColor;
+    font-weight: 600;
+
+    .mat-icon {
+      visibility: visible;
+    }
+  }
 }
 
 .sr-only {
@@ -95,13 +151,13 @@
   }
 
   &.available {
-    background: light-dark(#c8e6c9, #1b5e20);
-    color: light-dark(#1b5e20, #c8e6c9);
+    background: $available-bg;
+    color: $available-fg;
   }
 
   &.assigned {
-    background: light-dark(#ffe0b2, #8a4b00);
-    color: light-dark(#7a3e00, #ffe0b2);
+    background: $assigned-bg;
+    color: $assigned-fg;
   }
 
   &.locked {
@@ -113,6 +169,29 @@
 @media (max-width: 800px) {
   .mobile-only {
     display: inline-flex !important;
+  }
+
+  .mobile-flex {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status-filter {
+    gap: 6px;
+  }
+
+  .mobile-sort {
+    flex: 1 1 auto;
+    gap: 12px;
+
+    .sort-field {
+      flex: 1 1 140px;
+    }
+
+    button[mat-icon-button] .mat-icon {
+      margin-right: 0;
+    }
   }
 
   .table-wrap {
@@ -135,7 +214,8 @@
       display: none;
     }
 
-    &.filters-open thead {
+    &.filters-open thead,
+    &.pinned-filters thead {
       display: block;
 
       .labels {
@@ -158,6 +238,33 @@
         padding: 0;
         border: 0;
       }
+
+      .filters th[data-label]::before {
+        content: attr(data-label);
+        display: block;
+        color: var(--mat-sys-on-surface-variant);
+        font: var(--mat-sys-label-medium);
+      }
+
+      // Pinned filters keep their place at the top of the panel, where they sit when collapsed.
+      .filters th.pinned {
+        order: -1;
+      }
+
+      // A .wide filter takes the whole row (its own line above the two-column grid).
+      .filters th.wide {
+        grid-column: 1 / -1;
+      }
+
+      // The status filter is buttons on phones, so the select is not used.
+      .filters th.status-cell app-column-filter {
+        display: none;
+      }
+    }
+
+    // Filters marked as .pinned stay visible while the rest of the panel is collapsed.
+    &.pinned-filters:not(.filters-open) thead .filters th:not(.pinned) {
+      display: none;
     }
 
     tr.mat-mdc-row {

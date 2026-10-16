@@ -6,11 +6,17 @@
 
     <mat-form-field appearance="outline">
       <mat-label>{{ 'assignments.publisher' | translate }}</mat-label>
-      <mat-select formControlName="publisherId" required>
-        @for (p of data.publishers; track p.id) {
+      <input matInput type="text" formControlName="publisherId" [matAutocomplete]="publisherList"
+             (input)="onQuery($event)" required />
+      <!-- requireSelection: the field only accepts a publisher picked from the list. -->
+      <mat-autocomplete #publisherList="matAutocomplete" requireSelection [displayWith]="publisherName"
+                        (optionSelected)="query.set('')">
+        @for (p of publishers(); track p.id) {
           <mat-option [value]="p.id">{{ p.lastName }} {{ p.firstName }}</mat-option>
+        } @empty {
+          <mat-option disabled>{{ 'common.noResults' | translate }}</mat-option>
         }
-      </mat-select>
+      </mat-autocomplete>
       @if (form.controls.publisherId.hasError('required')) {
         <mat-error>{{ 'errors.fields.required' | translate }}</mat-error>
       }

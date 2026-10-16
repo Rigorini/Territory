@@ -1,8 +1,21 @@
 <div class="page-head">
   <h2>{{ 'nav.assignments' | translate }}</h2>
-  <button mat-stroked-button class="mobile-only" (click)="filtersOpen.set(!filtersOpen())" [attr.aria-expanded]="filtersOpen()">
-    <mat-icon>filter_list</mat-icon>{{ 'common.filters' | translate }}
-  </button>
+  <div class="mobile-sort">
+    <mat-form-field class="sort-field" appearance="outline" subscriptSizing="dynamic">
+      <mat-label>{{ 'common.sortBy' | translate }}</mat-label>
+      <mat-select [value]="table.sort().active" (selectionChange)="sortBy($event.value)">
+        @for (option of sortOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.labelKey | translate }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <button mat-icon-button (click)="toggleSortDirection()" [attr.aria-label]="'common.reverseSort' | translate">
+      <mat-icon>{{ descending() ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
+    </button>
+    <button mat-stroked-button (click)="filtersOpen.set(!filtersOpen())" [attr.aria-expanded]="filtersOpen()">
+      <mat-icon>filter_list</mat-icon>{{ 'common.filters' | translate }}
+    </button>
+  </div>
 </div>
 
 @if (statuses.loading()) {
@@ -10,8 +23,9 @@
 }
 
 <div class="table-wrap">
-  <table mat-table [dataSource]="table.rows()" matSort matSortActive="municipality" matSortDirection="asc"
-         (matSortChange)="table.onSort($event)" class="responsive-table" [class.filters-open]="filtersOpen()">
+  <table mat-table [dataSource]="table.rows()" matSort matSortActive="date" matSortDirection="desc"
+         (matSortChange)="table.onSort($event)" class="responsive-table pinned-filters"
+         [class.filters-open]="filtersOpen()">
 
     <ng-container matColumnDef="municipality">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'territories.municipality' | translate }}</th>
@@ -45,6 +59,17 @@
       <td mat-cell *matCellDef="let s" [attr.data-label]="'assignments.date' | translate">
         @if (date(s); as d) {
           <span [title]="(s.assignment ? 'assignments.assignedAt' : 'assignments.lastReturnedAt') | translate">{{ d }}</span>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="elapsed">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [matTooltip]="'assignments.elapsedHint' | translate">{{ 'assignments.elapsed' | translate }}</th>
+      <td mat-cell *matCellDef="let s" [attr.data-label]="'assignments.elapsed' | translate">
+        @if (elapsed(s); as e) {
+          {{ 'assignments.elapsedValue' | translate: e }}
+        } @else {
+          &mdash;
         }
       </td>
     </ng-container>
@@ -86,40 +111,52 @@
     </ng-container>
 
     <ng-container matColumnDef="f-municipality">
-      <th mat-header-cell *matHeaderCellDef>
+      <th mat-header-cell *matHeaderCellDef class="pinned wide" [attr.data-label]="'territories.municipality' | translate">
         <app-column-filter [label]="'territories.municipality' | translate" [value]="table.filter('municipality')"
                            [options]="municipalityOptions()" (valueChange)="table.setFilter('municipality', $event)" />
       </th>
     </ng-container>
     <ng-container matColumnDef="f-number">
-      <th mat-header-cell *matHeaderCellDef>
+      <th mat-header-cell *matHeaderCellDef [attr.data-label]="'territories.number' | translate">
         <app-column-filter [label]="'territories.number' | translate" [value]="table.filter('number')"
                            (valueChange)="table.setFilter('number', $event)" />
       </th>
     </ng-container>
     <ng-container matColumnDef="f-name">
-      <th mat-header-cell *matHeaderCellDef>
+      <th mat-header-cell *matHeaderCellDef [attr.data-label]="'territories.name' | translate">
         <app-column-filter [label]="'territories.name' | translate" [value]="table.filter('name')"
                            (valueChange)="table.setFilter('name', $event)" />
       </th>
     </ng-container>
     <ng-container matColumnDef="f-status">
-      <th mat-header-cell *matHeaderCellDef>
+      <th mat-header-cell *matHeaderCellDef class="pinned wide status-cell" [attr.data-label]="'assignments.status' | translate">
         <app-column-filter [label]="'assignments.status' | translate" [value]="table.filter('status')" [options]="statusOptions"
                            (valueChange)="table.setFilter('status', $event)" />
+        <div class="mobile-flex status-filter" role="group" [attr.aria-label]="'assignments.status' | translate">
+          @for (option of statusButtons; track option.value) {
+            <button type="button" class="status-button" [class.selected]="table.filter('status') === option.value"
+                    [attr.data-status]="option.value || 'all'" [attr.aria-pressed]="table.filter('status') === option.value"
+                    (click)="table.setFilter('status', option.value)">
+              {{ option.labelKey | translate }}<mat-icon>check</mat-icon>
+            </button>
+          }
+        </div>
       </th>
     </ng-container>
     <ng-container matColumnDef="f-publisher">
-      <th mat-header-cell *matHeaderCellDef>
+      <th mat-header-cell *matHeaderCellDef [attr.data-label]="'assignments.publisher' | translate">
         <app-column-filter [label]="'assignments.publisher' | translate" [value]="table.filter('publisher')"
                            (valueChange)="table.setFilter('publisher', $event)" />
       </th>
     </ng-container>
     <ng-container matColumnDef="f-date">
-      <th mat-header-cell *matHeaderCellDef>
+      <th mat-header-cell *matHeaderCellDef [attr.data-label]="'assignments.date' | translate">
         <app-column-filter [label]="'assignments.date' | translate" [value]="table.filter('date')"
                            (valueChange)="table.setFilter('date', $event)" />
       </th>
+    </ng-container>
+    <ng-container matColumnDef="f-elapsed">
+      <th mat-header-cell *matHeaderCellDef></th>
     </ng-container>
     <ng-container matColumnDef="f-frequency">
       <th mat-header-cell *matHeaderCellDef></th>

@@ -165,6 +165,8 @@
     "delete": "Elimina",
     "actions": "Azioni",
     "filters": "Filtri",
+    "sortBy": "Ordina per",
+    "reverseSort": "Inverti ordinamento",
     "filterBy": "Filtra per {{column}}",
     "clearFilters": "Azzera",
     "all": "Tutti",
@@ -264,6 +266,9 @@
     "frequency": "Ogni (media)",
     "frequencyHint": "Intervallo medio tra le assegnazioni del territorio nell'ultimo anno (m = mesi di 30 giorni, g = giorni)",
     "frequencyValue": "{{months}} m {{days}} g",
+    "elapsed": "Tempo trascorso",
+    "elapsedHint": "Tempo passato dalla data indicata (m = mesi di 30 giorni, g = giorni)",
+    "elapsedValue": "{{months}} m {{days}} g",
     "returnedBy": "Riconsegnato da",
     "returnedByValues": {
       "publisher": "Proclamatore (link)",
