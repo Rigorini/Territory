@@ -69,11 +69,13 @@
 }
 
 .content {
-  padding: 24px;
+  // Extra bottom space: on some browsers the last element of a page otherwise ends up flush
+  // against the bottom edge (e.g. behind the browser's bottom bar).
+  padding: 24px 24px calc(24px + 30px);
 }
 
 @media (max-width: 800px) {
   .content {
-    padding: 12px;
+    padding: 12px 12px calc(12px + 30px);
   }
 }
