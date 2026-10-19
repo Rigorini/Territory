@@ -69,6 +69,9 @@
 }
 
 .content {
+  // Material gives the drawer content height: 100% with content-box sizing: the padding would then
+  // push the element past the container's clipped edge, hiding the bottom padding entirely.
+  box-sizing: border-box;
   // Extra bottom space: on some browsers the last element of a page otherwise ends up flush
   // against the bottom edge (e.g. behind the browser's bottom bar).
   padding: 24px 24px calc(24px + 30px);
