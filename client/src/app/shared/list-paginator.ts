@@ -8,6 +8,13 @@ import { PaginatorIntl } from './paginator-intl';
   selector: 'app-list-paginator',
   imports: [MatPaginatorModule],
   providers: [{ provide: MatPaginatorIntl, useClass: PaginatorIntl }],
+  // The bar sits below the table and outside its card: it takes the page background instead of the
+  // table rows' surface colour.
+  styles: `
+    mat-paginator {
+      --mat-paginator-container-background-color: transparent;
+    }
+  `,
   template: `
     @if (paging().length() > 0) {
       <mat-paginator [length]="paging().length()" [pageIndex]="paging().index()" [pageSize]="paging().size()"
