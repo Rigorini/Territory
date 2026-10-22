@@ -91,6 +91,12 @@ export class AssignmentsPage implements OnInit {
     initialSort: { active: 'date', direction: 'desc' },
   });
   protected readonly paging = new Paging(this.table.rows);
+  /** Counters over the filtered rows, so the cards always match what the table lists. */
+  protected readonly counts = computed(() => {
+    const rows = this.table.rows();
+    const assigned = rows.filter(r => statusOf(r) === 'assigned').length;
+    return { assigned, available: rows.length - assigned, total: rows.length };
+  });
 
   ngOnInit(): void {
     void this.statuses.reload();

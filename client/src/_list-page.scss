@@ -2,10 +2,10 @@
 // Below 800px rows become cards and the filter row becomes a collapsible panel (toggle: .filters-open).
 
 // Status colours, shared by the table chips and the phone status buttons.
-$available-bg: light-dark(#c8e6c9, #1b5e20);
-$available-fg: light-dark(#1b5e20, #c8e6c9);
-$assigned-bg: light-dark(#ffe0b2, #8a4b00);
-$assigned-fg: light-dark(#7a3e00, #ffe0b2);
+$available-bg: light-dark(#dcf5e4, rgba(52, 211, 153, 0.15));
+$available-fg: light-dark(#12713a, #5eead4);
+$assigned-bg: light-dark(#fdebd0, rgba(251, 191, 36, 0.15));
+$assigned-fg: light-dark(#9a5200, #fcd34d);
 
 .page-head {
   display: flex;
@@ -18,10 +18,68 @@ $assigned-fg: light-dark(#7a3e00, #ffe0b2);
     flex: 1;
     margin: 0;
     font: var(--mat-sys-headline-small);
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: -0.2px;
   }
 
   .mat-icon {
     margin-right: 4px;
+  }
+}
+
+// Counters of the rows currently listed: they follow the active filters.
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 14px;
+  background: var(--mat-sys-surface);
+  box-shadow: var(--app-card-shadow);
+
+  .stat-icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+  }
+
+  .stat-value {
+    display: block;
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  .stat-label {
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-label-large);
+  }
+
+  &.available .stat-icon {
+    background: $available-bg;
+    color: $available-fg;
+  }
+
+  &.assigned .stat-icon {
+    background: $assigned-bg;
+    color: $assigned-fg;
+  }
+
+  &.total .stat-icon {
+    background: var(--mat-sys-primary-container);
+    color: var(--mat-sys-on-primary-container);
   }
 }
 
@@ -102,11 +160,21 @@ $assigned-fg: light-dark(#7a3e00, #ffe0b2);
 .table-wrap {
   overflow-x: auto;
   border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 12px;
+  border-radius: 14px;
+  box-shadow: var(--app-card-shadow);
 }
 
 .responsive-table {
   width: 100%;
+
+  .labels th {
+    background: var(--mat-sys-surface-container-low);
+    color: var(--mat-sys-on-surface-variant);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+  }
 
   .filters th {
     padding: 6px 8px;
@@ -137,13 +205,25 @@ $assigned-fg: light-dark(#7a3e00, #ffe0b2);
 }
 
 .chip {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-left: 6px;
-  padding: 2px 10px;
+  padding: 3px 12px;
   border-radius: 16px;
   font: var(--mat-sys-label-medium);
+  font-weight: 600;
   background: var(--mat-sys-secondary-container);
   color: var(--mat-sys-on-secondary-container);
+
+  &.available::before,
+  &.assigned::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
 
   &.active {
     background: var(--mat-sys-primary-container);
@@ -167,6 +247,21 @@ $assigned-fg: light-dark(#7a3e00, #ffe0b2);
 }
 
 @media (max-width: 800px) {
+  .stats {
+    gap: 8px;
+  }
+
+  .stat {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+
+    .stat-value {
+      font-size: 22px;
+    }
+  }
+
   .mobile-only {
     display: inline-flex !important;
   }
@@ -231,6 +326,7 @@ $assigned-fg: light-dark(#7a3e00, #ffe0b2);
 
   .responsive-table {
     background: transparent;
+    --mat-table-background-color: transparent;
 
     thead {
       display: none;

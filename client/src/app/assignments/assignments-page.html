@@ -22,6 +22,21 @@
   <mat-progress-bar mode="indeterminate" />
 }
 
+<div class="stats">
+  <div class="stat available">
+    <span class="stat-icon"><mat-icon>check_circle</mat-icon></span>
+    <div><span class="stat-value">{{ counts().available }}</span><span class="stat-label">{{ 'assignments.statuses.available' | translate }}</span></div>
+  </div>
+  <div class="stat assigned">
+    <span class="stat-icon"><mat-icon>assignment_ind</mat-icon></span>
+    <div><span class="stat-value">{{ counts().assigned }}</span><span class="stat-label">{{ 'assignments.statuses.assigned' | translate }}</span></div>
+  </div>
+  <div class="stat total">
+    <span class="stat-icon"><mat-icon>map</mat-icon></span>
+    <div><span class="stat-value">{{ counts().total }}</span><span class="stat-label">{{ 'assignments.total' | translate }}</span></div>
+  </div>
+</div>
+
 <div class="table-wrap">
   <table mat-table [dataSource]="paging.rows()" matSort matSortActive="date" matSortDirection="desc"
          (matSortChange)="table.onSort($event)" class="responsive-table pinned-filters"

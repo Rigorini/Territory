@@ -6,11 +6,15 @@
 
 .top {
   border-bottom: 1px solid var(--mat-sys-outline-variant);
-  background: var(--mat-sys-surface);
+  background: var(--app-top-gradient);
+  color: #fff;
+  --mat-icon-button-icon-color: rgba(255, 255, 255, 0.85);
+  --mat-icon-button-state-layer-color: #fff;
 }
 
 .title {
   font: var(--mat-sys-title-large);
+  letter-spacing: 0.2px;
 }
 
 .spacer {
@@ -23,7 +27,7 @@
   gap: 6px;
   margin-right: 8px;
   font: var(--mat-sys-label-large);
-  color: var(--mat-sys-on-surface-variant);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 @media (max-width: 500px) {
@@ -58,6 +62,16 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  --mat-list-active-indicator-color: var(--app-nav-active);
+  --mat-list-active-indicator-shape: 999px;
+
+  a.mdc-list-item--activated {
+    --mat-list-list-item-leading-icon-color: var(--app-nav-active-text);
+    --mat-list-list-item-label-text-color: var(--app-nav-active-text);
+    --mat-list-list-item-hover-label-text-color: var(--app-nav-active-text);
+    --mat-list-list-item-focus-label-text-color: var(--app-nav-active-text);
+    font-weight: 500;
+  }
 }
 
 .version {

@@ -260,6 +260,7 @@
     }
   },
   "assignments": {
+    "total": "Totale",
     "status": "Stato",
     "statuses": {
       "assigned": "Assegnato",
