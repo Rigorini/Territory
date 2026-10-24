@@ -36,13 +36,17 @@ describe('basemap layers', () => {
 
     expect(street.length).toBe(1);
     expect(attributionsOf(street[0]).join()).toContain('OpenStreetMap');
+    // Tiles must skip the service worker: an old worker's CSP would answer them with 504.
+    expect(street[0].getSource()!.getUrls()).toEqual([
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png?ngsw-bypass=true',
+    ]);
 
     const [imagery, labels] = satellite;
     expect(imagery.getSource()!.getUrls()).toEqual([
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?ngsw-bypass=true',
     ]);
     expect(labels.getSource()!.getUrls()).toEqual([
-      'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}?ngsw-bypass=true',
     ]);
     expect(imagery.getZIndex()).toBeLessThan(labels.getZIndex()!);
     // The imagery is licensed from several providers: the credit is part of the deal.

@@ -14,7 +14,9 @@ public sealed class SecurityHeadersMiddlewareTests
         var policy = SecurityHeadersMiddleware.PolicyFor(Environment(environmentName));
 
         Assert.Equal(SecurityHeadersMiddleware.ContentSecurityPolicy, policy);
-        Assert.Contains("connect-src 'self';", policy);
+        // Map tiles are allowed both as images and as connect-src: the service worker fetches them.
+        Assert.Contains("connect-src 'self' https://tile.openstreetmap.org https://server.arcgisonline.com;", policy);
+        Assert.Contains("img-src 'self' data: blob: https://tile.openstreetmap.org https://server.arcgisonline.com;", policy);
         Assert.DoesNotContain("localhost", policy);
     }
 
@@ -23,7 +25,10 @@ public sealed class SecurityHeadersMiddlewareTests
     {
         var policy = SecurityHeadersMiddleware.PolicyFor(Environment(Environments.Development));
 
-        Assert.Contains("connect-src 'self' http://localhost:* https://localhost:* ws://localhost:* wss://localhost:*;", policy);
+        Assert.Contains(
+            "connect-src 'self' http://localhost:* https://localhost:* ws://localhost:* wss://localhost:* " +
+            "https://tile.openstreetmap.org https://server.arcgisonline.com;",
+            policy);
         Assert.Contains("script-src 'self';", policy);
         Assert.Contains("frame-ancestors 'none'", policy);
         Assert.Equal(

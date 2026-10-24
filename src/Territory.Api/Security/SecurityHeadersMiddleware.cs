@@ -16,14 +16,18 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvi
     public static string PolicyFor(IHostEnvironment environment) =>
         environment.IsDevelopment() ? DevelopmentContentSecurityPolicy : ContentSecurityPolicy;
 
+    // Map tiles: OpenStreetMap for the street map, Esri for the optional satellite imagery.
+    // They are allowed in connect-src as well: the Angular service worker re-issues every
+    // request with fetch(), subject to the CSP of the response that served its script.
+    private const string MapTileHosts = "https://tile.openstreetmap.org https://server.arcgisonline.com";
+
     private static string Build(string connectSources) =>
         "default-src 'self'; " +
         "script-src 'self'; " +
         "style-src 'self' 'unsafe-inline'; " +
-        // Map tiles: OpenStreetMap for the street map, Esri for the optional satellite imagery.
-        "img-src 'self' data: blob: https://tile.openstreetmap.org https://server.arcgisonline.com; " +
+        $"img-src 'self' data: blob: {MapTileHosts}; " +
         "font-src 'self'; " +
-        $"connect-src {connectSources}; " +
+        $"connect-src {connectSources} {MapTileHosts}; " +
         "object-src 'none'; " +
         "base-uri 'self'; " +
         "form-action 'self'; " +

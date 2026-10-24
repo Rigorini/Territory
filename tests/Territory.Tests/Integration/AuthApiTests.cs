@@ -146,6 +146,36 @@ public sealed class AuthApiTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task AdminSettingAnotherUsersPassword_RequiresChangeAtNextLogin()
+    {
+        await fixture.SeedAdminAsync("admin", Password);
+        var admin = NewClient();
+        await admin.LoginAsync("admin", Password);
+        var created = await admin.SendAsync(HttpMethod.Post, "/api/admins", new SaveAdminRequest("newbie", "Anna Verdi", Password));
+        var dto = (await created.Content.ReadFromJsonAsync<AdminDto>(Ct))!;
+
+        // The user replaces the initial temporary password and starts working normally.
+        var user = NewClient();
+        await user.LoginAsync("newbie", Password);
+        Assert.Equal(
+            HttpStatusCode.NoContent,
+            (await user.SendAsync(HttpMethod.Put, "/api/auth/me/password", new ChangePasswordRequest(Password, "New-Password-22"))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await user.Http.GetAsync("/api/admins", Ct)).StatusCode);
+
+        // An administrator sets a new password: it is temporary again.
+        var reset = await admin.SendAsync(HttpMethod.Put, $"/api/admins/{dto.Id}", new SaveAdminRequest("newbie", "Anna Verdi", "Reset-Password-33"));
+        Assert.Equal(HttpStatusCode.OK, reset.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await user.Http.GetAsync("/api/admins", Ct)).StatusCode);
+
+        var back = NewClient();
+        var login = await back.LoginAsync("newbie", "Reset-Password-33");
+        Assert.True((await login.Content.ReadFromJsonAsync<JsonElement>(Ct)).GetProperty("mustChangePassword").GetBoolean());
+        var blocked = await back.Http.GetAsync("/api/admins", Ct);
+        Assert.Equal(HttpStatusCode.Forbidden, blocked.StatusCode);
+        Assert.Equal(PasswordChangeRequiredFilter.ErrorCode, await ReadCodeAsync(blocked));
+    }
+
+    [Fact]
     public async Task CreatedUser_MustChangePasswordBeforeUsingTheApi()
     {
         await fixture.SeedAdminAsync("admin", Password);

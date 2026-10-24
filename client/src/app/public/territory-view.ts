@@ -7,6 +7,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LanguageService } from '../core/language.service';
+import { publicViewReady } from '../core/splash';
 import { Feedback } from '../shared/feedback';
 import { formatDate } from '../shared/format';
 import { heldDuration, pluralKey } from './held-duration';
@@ -71,9 +72,16 @@ export class TerritoryView implements OnInit {
     try {
       this.map.set(await this.api.map(this.token()));
       this.mapState.set('ready');
+      // The map component keeps the startup splash up until its first frame is painted.
     } catch {
       this.mapState.set('unavailable');
+      publicViewReady();
     }
+  }
+
+  /** The map has been painted: the startup splash can fade out. */
+  protected mapRendered(): void {
+    publicViewReady();
   }
 
   protected async returnTerritory(): Promise<void> {
@@ -111,6 +119,8 @@ export class TerritoryView implements OnInit {
 
   private fail(error: unknown): void {
     this.state.set(isInvalidLink(error) ? 'invalid' : 'error');
+    // An error page is a finished state: do not keep the splash in front of it.
+    publicViewReady();
   }
 
   private handleReturnError(error: unknown): void {

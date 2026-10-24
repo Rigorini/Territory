@@ -20,7 +20,13 @@ const serverError = new HttpErrorResponse({ status: 500 });
 
 function fakeController() {
   let notify: (notice: MapNotice) => void = () => undefined;
-  const controller = { setBaseLayer: vi.fn(), resetView: vi.fn(), locate: vi.fn(), dispose: vi.fn() };
+  const controller = {
+    setBaseLayer: vi.fn(),
+    resetView: vi.fn(),
+    locate: vi.fn(),
+    whenRendered: vi.fn(() => Promise.resolve()),
+    dispose: vi.fn(),
+  };
   const factory = vi.fn<MapControllerFactory>((_target, _map, callback) => {
     notify = callback;
     return controller;
@@ -49,17 +55,26 @@ describe('TerritoryMap', () => {
       providers: [provideTranslateService(), { provide: MAP_CONTROLLER_FACTORY, useValue: fake.factory }],
     });
     const fixture = TestBed.createComponent(TerritoryMap);
+    const rendered = vi.fn();
+    fixture.componentInstance.rendered.subscribe(rendered);
     fixture.componentRef.setInput('map', map);
     await render(fixture);
-    return { ...fake, fixture, element: fixture.nativeElement as HTMLElement };
+    return { ...fake, fixture, rendered, element: fixture.nativeElement as HTMLElement };
   }
 
   it('creates the map after rendering and disposes it on destroy', async () => {
     const { factory, controller, fixture, element } = await setup();
 
     expect(factory).toHaveBeenCalledWith(element.querySelector('.map'), map, expect.any(Function));
+    expect(controller.whenRendered).toHaveBeenCalled();
     fixture.destroy();
     expect(controller.dispose).toHaveBeenCalled();
+  });
+
+  it('tells when the first frame is on screen', async () => {
+    const { rendered } = await setup();
+
+    expect(rendered).toHaveBeenCalledTimes(1);
   });
 
   it('delegates reset view and locate', async () => {

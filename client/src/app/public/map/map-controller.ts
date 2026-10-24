@@ -28,6 +28,8 @@ export interface MapController {
   setBaseLayer(kind: BaseLayerKind): void;
   resetView(): void;
   locate(): void;
+  /** Resolves when the first frame, including its tiles, has been painted. */
+  whenRendered(): Promise<void>;
   dispose(): void;
 }
 
@@ -131,6 +133,14 @@ export class OlMapController implements MapController {
     }
     this.geolocation.setTracking(true);
     this.onNotice({ kind: 'locate', state: 'searching' });
+  }
+
+  whenRendered(): Promise<void> {
+    return new Promise(resolve => {
+      this.map.once('rendercomplete', () => resolve());
+      // Ask for a frame: the listener above only sees frames rendered after it is registered.
+      this.map.render();
+    });
   }
 
   dispose(): void {

@@ -45,7 +45,9 @@
       <input matInput type="password" formControlName="password" autocomplete="new-password"
              [maxlength]="maxPasswordLength" [required]="!isEdit" />
       @if (isEdit) {
-        <mat-hint>{{ 'admins.keepPasswordHint' | translate }}</mat-hint>
+        <mat-hint>
+          {{ (showHints() && !isSelf ? 'admins.forcedChangeHint' : 'admins.keepPasswordHint') | translate }}
+        </mat-hint>
       }
       @if (form.controls.password.hasError('required')) {
         <mat-error>{{ 'errors.fields.required' | translate }}</mat-error>

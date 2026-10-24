@@ -26,12 +26,28 @@ const ESRI_ATTRIBUTION =
 /** Layers of a basemap; satellite imagery comes with its place labels on top. */
 export function createBaseLayers(kind: BaseLayerKind): TileLayer<OSM | XYZ>[] {
   if (kind === 'street') {
-    return [new TileLayer({ source: new OSM({ tileLoadFunction: loadTileWithReferrer }), zIndex: BASEMAP_Z })];
+    return [
+      new TileLayer({
+        source: new OSM({ url: tileUrl('https://tile.openstreetmap.org/{z}/{x}/{y}.png'), tileLoadFunction: loadTileWithReferrer }),
+        zIndex: BASEMAP_Z,
+      }),
+    ];
   }
   return [
     new TileLayer({ source: esriSource('World_Imagery'), zIndex: BASEMAP_Z }),
     new TileLayer({ source: esriSource('Reference/World_Boundaries_and_Places'), zIndex: LABELS_Z }),
   ];
+}
+
+/**
+ * Tiles skip the Angular service worker. A controlled page routes every request through the
+ * worker, which re-issues it with its own fetch, bounded by the CSP captured when the worker
+ * was installed; workers installed before the tile hosts were allowed in connect-src would
+ * fail every tile with 504. `ngsw-bypass` is the worker's own opt-out: the browser loads the
+ * tile directly, under the page CSP, whose img-src allows the tile hosts.
+ */
+function tileUrl(url: string): string {
+  return `${url}${url.includes('?') ? '&' : '?'}ngsw-bypass=true`;
 }
 
 /**
@@ -44,7 +60,7 @@ export function satelliteUnavailable(loaded: number, errors: number): boolean {
 
 function esriSource(service: string): XYZ {
   return new XYZ({
-    url: `${ESRI_SERVICES}/${service}/MapServer/tile/{z}/{y}/{x}`,
+    url: tileUrl(`${ESRI_SERVICES}/${service}/MapServer/tile/{z}/{y}/{x}`),
     // The imagery is licensed from several providers: the attribution is not optional.
     attributions: [ESRI_ATTRIBUTION],
     attributionsCollapsible: false,

@@ -20,7 +20,7 @@
         <section class="map-area">
           @switch (mapState()) {
             @case ('ready') {
-              <app-territory-map class="map" [map]="map()!" />
+              <app-territory-map class="map" [map]="map()!" (rendered)="mapRendered()" />
             }
             @case ('loading') {
               <div class="center"><mat-spinner diameter="40" [attr.aria-label]="'common.loading' | translate" /></div>

@@ -29,3 +29,27 @@ export function hideSplash(): void {
 export function failSplash(): void {
   window.__territorySplash?.fail();
 }
+
+let publicViewShown = false;
+let resolvePublicView: (() => void) | undefined;
+
+/**
+ * Waits until the public link page has its map on screen (or an error/empty state), so the
+ * splash covers the API call, the map bundle and the first tiles instead of a bare spinner.
+ * Resolves anyway after the timeout: the page has its own loading and retry states.
+ */
+export function whenPublicViewReady(timeoutMs: number): Promise<void> {
+  if (publicViewShown) {
+    return Promise.resolve();
+  }
+  const shown = new Promise<void>(resolve => (resolvePublicView = resolve));
+  const timeout = new Promise<void>(resolve => setTimeout(resolve, timeoutMs));
+  return Promise.race([shown, timeout]);
+}
+
+/** Called by the public link page once its map (or its error state) is on screen. */
+export function publicViewReady(): void {
+  publicViewShown = true;
+  resolvePublicView?.();
+  resolvePublicView = undefined;
+}

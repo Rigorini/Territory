@@ -79,6 +79,7 @@
     "password": "Password",
     "newPassword": "New password",
     "keepPasswordHint": "Leave empty to keep the current password",
+    "forcedChangeHint": "The person must choose a new password at the next sign-in",
     "confirmPassword": "Confirm password",
     "passwordRules": "Password requirements",
     "rules": {

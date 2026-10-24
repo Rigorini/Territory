@@ -139,6 +139,8 @@ public sealed class AdminServiceTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.NotEqual(admin.PasswordHash, stored.PasswordHash);
         Assert.Equal(0, stored.FailedAttempts);
         Assert.Null(stored.LockoutUntil);
+        // Someone else chose this password: it is temporary until the owner replaces it.
+        Assert.True(stored.MustChangePassword);
     }
 
     [Fact]
@@ -152,14 +154,16 @@ public sealed class AdminServiceTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Update_OwnPassword_Succeeds()
+    public async Task Update_OwnPassword_Succeeds_WithoutForcingAnotherChange()
     {
         var admin = await fixture.SeedAdminAsync("admin", Password);
 
         var result = await service.UpdateAsync(admin.Id, new SaveAdminRequest("admin", "Mario Rossi", NewPassword), admin.Id, Ct);
 
         Assert.True(result.IsSuccess);
-        Assert.NotEqual(admin.PasswordHash, (await fixture.FindAdminAsync(admin.Id))!.PasswordHash);
+        var stored = await fixture.FindAdminAsync(admin.Id);
+        Assert.NotEqual(admin.PasswordHash, stored!.PasswordHash);
+        Assert.False(stored.MustChangePassword);
     }
 
     [Fact]

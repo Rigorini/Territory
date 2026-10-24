@@ -1,4 +1,4 @@
-import { afterNextRender, Component, DestroyRef, ElementRef, inject, input, signal, viewChild } from '@angular/core';
+import { afterNextRender, Component, DestroyRef, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -30,6 +30,8 @@ const BASEMAP_ICONS: Record<BaseLayerKind, string> = {
 })
 export class TerritoryMap {
   readonly map = input.required<GeoFeatureCollection>();
+  /** Emitted once the first frame (basemap tiles included) has been painted. */
+  readonly rendered = output<void>();
 
   private readonly host = viewChild.required<ElementRef<HTMLElement>>('host');
   private readonly createController = inject(MAP_CONTROLLER_FACTORY);
@@ -45,6 +47,7 @@ export class TerritoryMap {
     afterNextRender(() => {
       this.controller = this.createController(this.host().nativeElement, this.map(), notice => this.onNotice(notice));
       this.controller.setBaseLayer(this.baseLayer());
+      void this.controller.whenRendered().then(() => this.rendered.emit());
     });
     inject(DestroyRef).onDestroy(() => this.controller?.dispose());
   }

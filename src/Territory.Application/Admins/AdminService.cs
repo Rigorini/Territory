@@ -12,6 +12,8 @@ public sealed record AdminDto(int Id, string Username, string DisplayName, DateT
 /// <summary>
 /// DisplayName is the name of the person, Username the login. Password is required on create; on update an empty password keeps the current one.
 /// Role defaults to Administrator on create and keeps the current one on update when null.
+/// A password set by an administrator (on create, or on another user's account) is temporary:
+/// the owner must replace it at the next login.
 /// </summary>
 public sealed record SaveAdminRequest(string? Username, string? DisplayName, string? Password, AdminRole? Role = null);
 
@@ -114,6 +116,12 @@ public sealed class AdminService(
         if (changePassword)
         {
             SetPassword(user, request.Password!);
+            // A password chosen by an administrator is temporary: whoever receives it must
+            // replace it at the next login. Changing your own password here is not temporary.
+            if (id != actorId)
+            {
+                user.MustChangePassword = true;
+            }
         }
 
         if (await db.TrySaveAsync(cancellationToken) != SaveOutcome.Saved)
