@@ -23,6 +23,10 @@
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
+            "index": {
+              "input": "src/index.html",
+              "preloadInitial": true
+            },
             "assets": [
               {
                 "glob": "**/*",
@@ -31,17 +35,14 @@
             ],
             "styles": [
               "node_modules/ol/ol.css",
-              "@fontsource/roboto/300.css",
-              "@fontsource/roboto/400.css",
-              "@fontsource/roboto/500.css",
-              "material-symbols/outlined.css",
               "src/styles.scss"
             ],
             "outputPath": {
               "base": "../src/Territory.Api/wwwroot",
               "browser": ""
             },
-            "deleteOutputPath": true
+            "deleteOutputPath": true,
+            "serviceWorker": "ngsw-config.json"
           },
           "configurations": {
             "production": {

@@ -7,6 +7,8 @@ import { loginGuard, setupGuard } from './setup/setup.guard';
 export const routes: Routes = [
   {
     path: 't/:token',
+    // The public map pulls in OpenLayers (~370 kB): load it only when the link is opened.
+    data: { preload: false },
     loadComponent: () => import('./public/territory-view').then(m => m.TerritoryView),
   },
   {

@@ -36,6 +36,17 @@ The software does not draw maps itself. Each territory map must be created with 
 
 The application is built with ASP.NET, Angular and Postgres, and it can be installed on any ASP.NET hosting, **even a free one such as [MonsterASP.NET](https://www.monsterasp.net/)**, as long as a PostgreSQL database is reachable.
 
+## Performance and PWA
+
+The client is tuned for fast starts, especially when installed as a PWA on a smartphone:
+
+- **Service worker** (`client/ngsw-config.json`): production builds register Angular's service worker, which prefetches the app shell, all JavaScript/CSS chunks, translations and fonts. With `navigationRequestStrategy: "performance"` the cached shell is served immediately on launch; a new version is downloaded in the background and used on the next launch. The service worker is disabled in development (`isDevMode()`), so `ng serve` is unaffected. `ngsw-worker.js` and `ngsw.json` are generated into `wwwroot` by the normal client build.
+- **Compression**: `Program.cs` enables Brotli/Gzip response compression for HTML, JavaScript, CSS, JSON, SVG and the service worker. Content-hashed files are served with `Cache-Control: public, max-age=31536000, immutable`; `index.html`, `ngsw.json` and other unhashed files are revalidated (`StaticFileCachePolicy`).
+- **Fonts**: only the Latin Roboto 400/500 subsets and a Material Symbols subset containing the icons actually used are shipped (about 56 KB instead of the 4 MB full icon font). The files and their licenses are in `client/public/fonts`. When a template starts using a new icon, regenerate the subset with Google Fonts (`...font-family=Material+Symbols+Outlined...&icon_names=<comma-separated, sorted names>`) and update the hashed file name in `client/src/styles.scss` and the preload link in `client/src/index.html`.
+- **Loading**: routes are lazy-loaded; after the first navigation an idle preloading strategy fetches the remaining admin chunks (skipped on data-saver/slow connections). The splash screen in `index.html` + `public/splash.js` paints before Angular, shows progressive startup messages, starts waking the server early with `GET /health/live`, and is hidden by `SplashScreenService` only after the first route and its translations are ready.
+
+When hosting behind a reverse proxy, keep compression enabled there as well (or let the proxy handle it); the application also compresses responses itself.
+
 ## Database setup
 
 To create the database structure, run the included script **`db/001_schema.sql`**. It is idempotent: it is the only script to run, and it can be run again on an existing database to add new columns. EF migrations are not used. The script must be executed with the table owner (for example `postgres`); the application user only needs read/write access to the tables.

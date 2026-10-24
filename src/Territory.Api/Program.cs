@@ -1,6 +1,8 @@
 using System.Globalization;
+using System.IO.Compression;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Net.Http.Headers;
 using Territory.Api;
 using Territory.Api.Cli;
@@ -36,6 +38,24 @@ builder.Services.AddTerritoryAuth();
 builder.Services.AddProblemDetails();
 builder.Services.AddTerritoryRateLimiting();
 builder.Services.AddLocalization();
+// Brotli/Gzip for the SPA bundles, the service worker, translations and API JSON. Assets are
+// hashed and cached forever by the browser/service worker, so the CPU cost is paid once per version.
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
+    {
+        "application/manifest+json",
+        "application/json",
+        "image/svg+xml",
+        "application/xml",
+        "text/xml",
+    });
+});
+builder.Services.Configure<BrotliCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
+builder.Services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
 builder.Services.AddHealthChecks()
     .AddNpgSql(builder.Configuration.GetConnectionString(DependencyInjection.ConnectionStringName)!, tags: ["ready"]);
 builder.Services.AddHsts(o =>
@@ -55,6 +75,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
     app.UseHttpsRedirection();
 }
+
+// Must run before static files and endpoints so their responses are compressed.
+app.UseResponseCompression();
 
 var supportedCultures = new[] { new CultureInfo("en"), new CultureInfo("it") };
 app.UseRequestLocalization(new RequestLocalizationOptions

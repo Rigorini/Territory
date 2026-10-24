@@ -22,6 +22,7 @@ export class LanguageService {
   private readonly translate = inject(TranslateService);
   private readonly document = inject(DOCUMENT);
   private readonly activeLanguage = signal<Language>(FALLBACK_LANGUAGE);
+  private pendingLoad: Promise<void> = Promise.resolve();
 
   /** Reactive current language, e.g. for locale-aware formatting. */
   readonly active = this.activeLanguage.asReadonly();
@@ -31,9 +32,26 @@ export class LanguageService {
   }
 
   use(language: Language): void {
-    this.translate.use(language);
     this.document.documentElement.lang = language;
     this.activeLanguage.set(language);
+    this.pendingLoad = new Promise<void>(resolve => {
+      try {
+        // The splash screen waits for this before revealing the app, so the first screen
+        // never flashes raw translation keys. A failed request must not block startup.
+        this.translate.use(language).subscribe({
+          next: () => resolve(),
+          error: () => resolve(),
+          complete: () => resolve(),
+        });
+      } catch {
+        resolve();
+      }
+    });
+  }
+
+  /** Resolves when the translations of the most recently selected language loaded (or failed). */
+  whenReady(): Promise<void> {
+    return this.pendingLoad;
   }
 
   get current(): string | null {

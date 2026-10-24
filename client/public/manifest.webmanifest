@@ -1,0 +1,36 @@
+{
+  "id": "/",
+  "name": "Territori — Registro Territori",
+  "short_name": "Territori",
+  "description": "Gestione dei territori e delle assegnazioni della congregazione.",
+  "lang": "it",
+  "dir": "ltr",
+  "start_url": "/admin",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a2a6b",
+  "theme_color": "#0b57d0",
+  "categories": ["productivity", "utilities"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
