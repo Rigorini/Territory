@@ -100,17 +100,9 @@
         animation: app-splash-breathe 2.6s ease-in-out infinite;
       }
 
-      .app-splash__logo > svg:not(.app-splash__ring) {
+      .app-splash__logo > svg {
         width: 50px;
         height: 50px;
-      }
-
-      .app-splash__logo .app-splash__ring {
-        position: absolute;
-        inset: -9px;
-        width: calc(100% + 18px);
-        height: calc(100% + 18px);
-        animation: app-splash-spin 1.7s linear infinite;
       }
 
       .app-splash__title {
@@ -172,8 +164,7 @@
         background: rgba(255, 255, 255, 0.24);
       }
 
-      .app-splash--error .app-splash__progress,
-      .app-splash--error .app-splash__ring {
+      .app-splash--error .app-splash__progress {
         display: none;
       }
 
@@ -186,12 +177,6 @@
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
-      }
-
-      @keyframes app-splash-spin {
-        to {
-          transform: rotate(360deg);
-        }
       }
 
       @keyframes app-splash-breathe {
@@ -228,18 +213,6 @@
     <div id="app-splash" class="app-splash" role="status" aria-live="polite" aria-busy="true">
       <div class="app-splash__inner">
         <div class="app-splash__logo" aria-hidden="true">
-          <svg class="app-splash__ring" viewBox="0 0 100 100" aria-hidden="true">
-            <circle
-              cx="50"
-              cy="50"
-              r="47"
-              fill="none"
-              stroke="rgba(255, 255, 255, 0.9)"
-              stroke-width="1.6"
-              stroke-linecap="round"
-              stroke-dasharray="64 232"
-            />
-          </svg>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path
               fill="#ffffff"
