@@ -5,6 +5,8 @@ using Npgsql;
 using Territory.Application.Domain;
 using Territory.Application.Publishers;
 using Territory.Infrastructure.Persistence;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Testcontainers.PostgreSql;
 
 namespace Territory.Tests.Integration;
@@ -19,19 +21,31 @@ public sealed class PostgresFixture : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         await container.StartAsync();
-        foreach (var script in SchemaScripts)
-        {
-            await RunScriptAsync(script);
-        }
+        await CreateMigrator(ConnectionString).MigrateAsync(CancellationToken.None);
     }
 
-    /// <summary>Schema scripts in execution order, as run on a new installation.</summary>
-    public static readonly string[] SchemaScripts = ["001_schema.sql"];
+    /// <summary>The migrator of the application, as run at startup.</summary>
+    public static DatabaseMigrator CreateMigrator(
+        string connectionString, ILoggerFactory? logs = null, IReadOnlyList<SchemaScript>? scripts = null) =>
+        new(connectionString, (logs ?? NullLoggerFactory.Instance).CreateLogger<DatabaseMigrator>(), TimeProvider.System, scripts);
 
-    public async Task RunScriptAsync(string name)
+    /// <summary>Creates an empty database in the same container and returns its connection string.</summary>
+    public async Task<string> CreateEmptyDatabaseAsync()
     {
-        var sql = await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "db", name));
-        await using var connection = new NpgsqlConnection(ConnectionString);
+        var name = "db_" + Guid.NewGuid().ToString("N");
+        await using (var connection = new NpgsqlConnection(ConnectionString))
+        {
+            await connection.OpenAsync();
+            await using var command = new NpgsqlCommand($"CREATE DATABASE {name}", connection);
+            await command.ExecuteNonQueryAsync();
+        }
+
+        return new NpgsqlConnectionStringBuilder(ConnectionString) { Database = name }.ConnectionString;
+    }
+
+    public static async Task ExecuteAsync(string connectionString, string sql)
+    {
+        await using var connection = new NpgsqlConnection(connectionString);
         await connection.OpenAsync();
         await using var command = new NpgsqlCommand(sql, connection);
         await command.ExecuteNonQueryAsync();
@@ -68,6 +82,28 @@ public sealed class PostgresFixture : IAsyncLifetime
         await using var db = CreateDbContext();
         return await db.AdminUsers.AsNoTracking().SingleOrDefaultAsync(u => u.Id == id);
     }
+
+    public async Task<LoginLockout?> FindLockoutAsync(int userId, string clientKey)
+    {
+        await using var db = CreateDbContext();
+        return await db.LoginLockouts.AsNoTracking().SingleOrDefaultAsync(l => l.UserId == userId && l.ClientKey == clientKey);
+    }
+
+    public async Task<int> CountLockoutsAsync(int userId)
+    {
+        await using var db = CreateDbContext();
+        return await db.LoginLockouts.CountAsync(l => l.UserId == userId);
+    }
+
+    public Task<LoginLockout> SeedLockoutAsync(int userId, string clientKey, int failedAttempts, DateTimeOffset? lockoutUntil, DateTimeOffset updatedAt) =>
+        AddAsync(new LoginLockout
+        {
+            UserId = userId,
+            ClientKey = clientKey,
+            FailedAttempts = failedAttempts,
+            LockoutUntil = lockoutUntil,
+            UpdatedAt = updatedAt
+        });
 
     public Task<Municipality> SeedMunicipalityAsync(string name) => AddAsync(new Municipality { Name = name });
 

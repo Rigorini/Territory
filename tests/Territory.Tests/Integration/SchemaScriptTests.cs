@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Territory.Application.Domain;
+using Territory.Infrastructure.Persistence;
 
 namespace Territory.Tests.Integration;
 
@@ -16,9 +17,9 @@ public sealed class SchemaScriptTests(PostgresFixture fixture) : IAsyncLifetime
     {
         var admin = await fixture.SeedAdminAsync("admin", "Correct-Horse-1");
 
-        foreach (var script in PostgresFixture.SchemaScripts)
+        foreach (var script in DatabaseMigrator.Scripts)
         {
-            await fixture.RunScriptAsync(script);
+            await PostgresFixture.ExecuteAsync(fixture.ConnectionString, script.Sql);
         }
 
         Assert.Equal("Admin admin", (await fixture.FindAdminAsync(admin.Id))!.DisplayName);

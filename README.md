@@ -49,7 +49,26 @@ When hosting behind a reverse proxy, keep compression enabled there as well (or 
 
 ## Database setup
 
-To create the database structure, run the included script **`db/001_schema.sql`**. It is idempotent: it is the only script to run, and it can be run again on an existing database to add new columns. EF migrations are not used. The script must be executed with the table owner (for example `postgres`); the application user only needs read/write access to the tables.
+**The application creates and updates the database structure by itself at startup.** Create an empty database and start the application: nothing has to be run by hand, neither on a new installation nor after an update.
+
+How it works:
+
+- The schema is described by numbered scripts in `db/` (`001_schema.sql`, `002_login_lockout.sql`, …), embedded in the application. EF migrations are not used.
+- The table `schema_version` records which scripts have been applied. At startup the missing ones are applied in order, each in its own transaction: a failing script leaves nothing behind, the error is logged as critical and the application does not start, so it never runs against an outdated schema.
+- With several instances only one applies the scripts (PostgreSQL advisory lock); the others wait and then find nothing to do.
+- Databases created before versioning (up to 1.4.4) have no `schema_version`: they re-run `001_schema.sql`, which is idempotent and keeps the data, and then the newer scripts.
+
+The account that applies the scripts must be able to create and alter tables (normally the table owner). If the application account only has read/write access, either:
+
+- add a second connection string `ConnectionStrings:TerritoryMigrations` with the owner account: it is used only for the schema, everything else keeps using `ConnectionStrings:Territory`; or
+- set `Database:MigrateOnStartup` to `false` and update the schema before each release with the command below, using the owner account.
+
+```powershell
+# Applies the missing scripts and exits (uses TerritoryMigrations, otherwise Territory)
+dotnet Territory.Api.dll migrate-database
+```
+
+For developers: never change a script that has already been released (the application logs a warning when an applied script no longer matches its checksum). Add a new file with the next number instead, e.g. `db/003_description.sql`, without `BEGIN`/`COMMIT` (the application opens the transaction). To run a script by hand use `psql -1 -v ON_ERROR_STOP=1 -f db/NNN_description.sql`.
 
 On first start, with an empty database, the `/setup` page lets you create the first administrator.
 

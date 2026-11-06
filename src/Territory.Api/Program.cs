@@ -10,6 +10,7 @@ using Territory.Api.Endpoints;
 using Territory.Api.Logging;
 using Territory.Api.Security;
 using Territory.Infrastructure;
+using Territory.Infrastructure.Persistence;
 
 if (args.Length > 0 && args[0] == HashPasswordCommand.Name)
 {
@@ -21,6 +22,12 @@ if (args.Length > 0 && PersonalDataCommands.IsCommand(args[0]))
     var cli = Host.CreateApplicationBuilder(args);
     return await PersonalDataCommands.RunAsync(
         args, cli.Configuration, cli.Environment.ContentRootPath, Console.Out, Console.Error, CancellationToken.None);
+}
+
+if (args.Length > 0 && DatabaseCommands.IsCommand(args[0]))
+{
+    var cli = Host.CreateApplicationBuilder(args);
+    return await DatabaseCommands.RunAsync(cli.Configuration, Console.Out, Console.Error, CancellationToken.None);
 }
 
 var builder = WebApplication.CreateBuilder(args);
@@ -65,6 +72,13 @@ builder.Services.AddHsts(o =>
 });
 
 var app = builder.Build();
+
+// Before serving any request: the code of this build expects the schema of this build.
+// A failure stops the startup (logged as critical) instead of running against an outdated schema.
+if (app.Configuration.GetValue(DependencyInjection.MigrateOnStartupKey, true))
+{
+    await app.Services.GetRequiredService<DatabaseMigrator>().MigrateAsync(app.Lifetime.ApplicationStopping);
+}
 
 app.UseMiddleware<RequestLogContextMiddleware>();
 app.UseMiddleware<SecurityHeadersMiddleware>();

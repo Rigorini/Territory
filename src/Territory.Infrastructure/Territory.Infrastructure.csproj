@@ -15,7 +15,13 @@
     <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.13" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Versioned schema scripts, applied by DatabaseMigrator: shipped inside the assembly, never copied by hand. -->
+    <EmbeddedResource Include="..\..\db\*.sql" LogicalName="$(DatabaseScriptPrefix)%(Filename)%(Extension)" />
+  </ItemGroup>
+
   <PropertyGroup>
+    <DatabaseScriptPrefix>Territory.Db.</DatabaseScriptPrefix>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>

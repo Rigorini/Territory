@@ -19,8 +19,6 @@ public sealed class AdminUser
 
     /// <summary>Set when an administrator created the account: the user must choose their own password at the first login.</summary>
     public bool MustChangePassword { get; set; }
-    public int FailedAttempts { get; set; }
-    public DateTimeOffset? LockoutUntil { get; set; }
     public ThemePreference Theme { get; set; } = ThemePreference.System;
     public string? Language { get; set; }
     public DateTimeOffset CreatedAt { get; set; }

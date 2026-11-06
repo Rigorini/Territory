@@ -17,6 +17,7 @@ using Territory.Application.Territories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Territory.Infrastructure.Export;
 using Territory.Infrastructure.Maps;
 using Territory.Infrastructure.Persistence;
@@ -27,6 +28,12 @@ namespace Territory.Infrastructure;
 public static class DependencyInjection
 {
     public const string ConnectionStringName = "Territory";
+
+    /// <summary>Optional: connection used only to update the schema (e.g. the table owner).</summary>
+    public const string MigrationConnectionStringName = "TerritoryMigrations";
+
+    /// <summary>Set to false to update the schema only with the <c>migrate-database</c> command.</summary>
+    public const string MigrateOnStartupKey = "Database:MigrateOnStartup";
     private const string ApplicationName = "Territory";
 
     public static IServiceCollection AddInfrastructure(
@@ -51,6 +58,13 @@ public static class DependencyInjection
         services.AddDataProtection()
             .SetApplicationName(ApplicationName)
             .PersistKeysToDbContext<TerritoryDbContext>();
+
+        // Schema changes may use a separate owner account; without it the application account must own the tables.
+        var migrationConnectionString = configuration.GetConnectionString(MigrationConnectionStringName);
+        services.AddSingleton(sp => new DatabaseMigrator(
+            string.IsNullOrWhiteSpace(migrationConnectionString) ? connectionString : migrationConnectionString,
+            sp.GetRequiredService<ILogger<DatabaseMigrator>>(),
+            sp.GetRequiredService<TimeProvider>()));
 
         services.AddScoped<ITerritoryDbContext>(sp => sp.GetRequiredService<TerritoryDbContext>());
         services.AddSingleton(TimeProvider.System);

@@ -13,6 +13,8 @@ namespace Territory.Tests.Integration;
 public sealed class AuthServiceTests(PostgresFixture fixture) : IAsyncLifetime
 {
     private const string Password = "Correct-Horse-1";
+    private const string Attacker = "203.0.113.7";
+    private const string Owner = "198.51.100.20";
     private readonly FakeTimeProvider clock = new(new DateTimeOffset(2025, 1, 1, 10, 0, 0, TimeSpan.Zero));
     private readonly List<TerritoryDbContext> contexts = [];
     private readonly CapturingLoggerFactory logs = new();
@@ -40,7 +42,7 @@ public sealed class AuthServiceTests(PostgresFixture fixture) : IAsyncLifetime
     {
         var admin = await fixture.SeedAdminAsync("Mario.Rossi", Password);
 
-        var result = await CreateService().LoginAsync("  mario.rossi ", Password, Ct);
+        var result = await CreateService().LoginAsync("  mario.rossi ", Password, Owner, Ct);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(admin.Id, result.Value!.Id);
@@ -57,7 +59,7 @@ public sealed class AuthServiceTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await fixture.SeedAdminAsync("admin", Password);
 
-        var result = await CreateService().LoginAsync(username, password, Ct);
+        var result = await CreateService().LoginAsync(username, password, Owner, Ct);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorKind.Unauthorized, result.Error!.Kind);
@@ -67,26 +69,70 @@ public sealed class AuthServiceTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task Login_WithOverlongInput_IsRejectedWithoutDatabaseLookup()
     {
-        var result = await CreateService().LoginAsync(new string('a', 51), new string('b', 129), Ct);
+        var result = await CreateService().LoginAsync(new string('a', 51), new string('b', 129), Owner, Ct);
 
         Assert.Equal(AuthService.InvalidCredentials, result.Error!.Code);
     }
 
     [Fact]
-    public async Task Login_AfterMaxFailures_LocksAccountEvenWithCorrectPassword()
+    public async Task Login_AfterMaxFailures_LocksTheNetworkEvenWithCorrectPassword()
     {
         var admin = await fixture.SeedAdminAsync("admin", Password);
         var service = CreateService();
 
         for (var i = 0; i < AuthService.MaxFailedAttempts; i++)
         {
-            await service.LoginAsync("admin", "Wrong-Password-1", Ct);
+            await service.LoginAsync("admin", "Wrong-Password-1", Attacker, Ct);
         }
 
-        var stored = await fixture.FindAdminAsync(admin.Id);
+        var stored = await fixture.FindLockoutAsync(admin.Id, Attacker);
         Assert.Equal(clock.GetUtcNow() + AuthService.LockoutDuration, stored!.LockoutUntil);
         Assert.Equal(0, stored.FailedAttempts);
-        Assert.False((await CreateService().LoginAsync("admin", Password, Ct)).IsSuccess);
+        Assert.False((await CreateService().LoginAsync("admin", Password, Attacker, Ct)).IsSuccess);
+    }
+
+    [Fact]
+    public async Task Login_LockedFromAnotherNetwork_StillWorksForTheOwner()
+    {
+        var admin = await fixture.SeedAdminAsync("admin", Password);
+        for (var i = 0; i < AuthService.MaxFailedAttempts * 2; i++)
+        {
+            await CreateService().LoginAsync("admin", "Wrong-Password-1", Attacker, Ct);
+        }
+
+        var result = await CreateService().LoginAsync("admin", Password, Owner, Ct);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(await fixture.FindLockoutAsync(admin.Id, Owner));
+        Assert.NotNull((await fixture.FindLockoutAsync(admin.Id, Attacker))!.LockoutUntil);
+    }
+
+    [Fact]
+    public async Task Login_FailuresFromDifferentNetworks_DoNotAddUp()
+    {
+        var admin = await fixture.SeedAdminAsync("admin", Password);
+        for (var i = 0; i < AuthService.MaxFailedAttempts - 1; i++)
+        {
+            await CreateService().LoginAsync("admin", "Wrong-Password-1", Attacker, Ct);
+            await CreateService().LoginAsync("admin", "Wrong-Password-1", Owner, Ct);
+        }
+
+        Assert.Null((await fixture.FindLockoutAsync(admin.Id, Attacker))!.LockoutUntil);
+        Assert.Equal(AuthService.MaxFailedAttempts - 1, (await fixture.FindLockoutAsync(admin.Id, Owner))!.FailedAttempts);
+        Assert.True((await CreateService().LoginAsync("admin", Password, Owner, Ct)).IsSuccess);
+    }
+
+    [Fact]
+    public async Task Login_Success_ClearsOnlyTheFailuresOfItsNetwork()
+    {
+        var admin = await fixture.SeedAdminAsync("admin", Password);
+        await CreateService().LoginAsync("admin", "Wrong-Password-1", Attacker, Ct);
+        await CreateService().LoginAsync("admin", "Wrong-Password-1", Owner, Ct);
+
+        await CreateService().LoginAsync("admin", Password, Owner, Ct);
+
+        Assert.Null(await fixture.FindLockoutAsync(admin.Id, Owner));
+        Assert.Equal(1, (await fixture.FindLockoutAsync(admin.Id, Attacker))!.FailedAttempts);
     }
 
     [Fact]
@@ -95,17 +141,27 @@ public sealed class AuthServiceTests(PostgresFixture fixture) : IAsyncLifetime
         var admin = await fixture.SeedAdminAsync("admin", Password);
         for (var i = 0; i < AuthService.MaxFailedAttempts; i++)
         {
-            await CreateService().LoginAsync("admin", "Wrong-Password-1", Ct);
+            await CreateService().LoginAsync("admin", "Wrong-Password-1", Owner, Ct);
         }
 
         clock.Advance(AuthService.LockoutDuration + TimeSpan.FromSeconds(1));
-        await CreateService().LoginAsync("admin", "Wrong-Password-1", Ct);
-        var result = await CreateService().LoginAsync("admin", Password, Ct);
+        await CreateService().LoginAsync("admin", "Wrong-Password-1", Owner, Ct);
+        var result = await CreateService().LoginAsync("admin", Password, Owner, Ct);
 
         Assert.True(result.IsSuccess);
-        var stored = await fixture.FindAdminAsync(admin.Id);
-        Assert.Equal(0, stored!.FailedAttempts);
-        Assert.Null(stored.LockoutUntil);
+        Assert.Null(await fixture.FindLockoutAsync(admin.Id, Owner));
+    }
+
+    [Fact]
+    public async Task Login_OldFailures_AreForgotten()
+    {
+        var admin = await fixture.SeedAdminAsync("admin", Password);
+        await fixture.SeedLockoutAsync(admin.Id, Owner, AuthService.MaxFailedAttempts - 1, null, clock.GetUtcNow() - AuthService.FailureMemory - TimeSpan.FromMinutes(1));
+
+        await CreateService().LoginAsync("admin", "Wrong-Password-1", Owner, Ct);
+
+        var stored = await fixture.FindLockoutAsync(admin.Id, Owner);
+        Assert.Equal((1, (DateTimeOffset?)null), (stored!.FailedAttempts, stored.LockoutUntil));
     }
 
     [Fact]
@@ -113,13 +169,13 @@ public sealed class AuthServiceTests(PostgresFixture fixture) : IAsyncLifetime
     {
         var admin = await fixture.SeedAdminAsync("admin", Password);
 
-        var result = await CreateService().ChangePasswordAsync(admin.Id, new ChangePasswordRequest(Password, "New-Password-22"), Ct);
+        var result = await CreateService().ChangePasswordAsync(admin.Id, new ChangePasswordRequest(Password, "New-Password-22"), Owner, Ct);
 
         Assert.True(result.IsSuccess);
         var stored = (await fixture.FindAdminAsync(admin.Id))!;
         Assert.NotEqual(admin.SecurityStamp, stored.SecurityStamp);
-        Assert.True((await CreateService().LoginAsync("admin", "New-Password-22", Ct)).IsSuccess);
-        Assert.False((await CreateService().LoginAsync("admin", Password, Ct)).IsSuccess);
+        Assert.True((await CreateService().LoginAsync("admin", "New-Password-22", Owner, Ct)).IsSuccess);
+        Assert.False((await CreateService().LoginAsync("admin", Password, Owner, Ct)).IsSuccess);
     }
 
     [Theory]
@@ -131,7 +187,7 @@ public sealed class AuthServiceTests(PostgresFixture fixture) : IAsyncLifetime
     {
         var admin = await fixture.SeedAdminAsync("admin", Password);
 
-        var result = await CreateService().ChangePasswordAsync(admin.Id, new ChangePasswordRequest(current, next), Ct);
+        var result = await CreateService().ChangePasswordAsync(admin.Id, new ChangePasswordRequest(current, next), Owner, Ct);
 
         Assert.Equal([code], result.Error!.Fields![field]);
         Assert.Equal(admin.PasswordHash, (await fixture.FindAdminAsync(admin.Id))!.PasswordHash);
@@ -142,7 +198,7 @@ public sealed class AuthServiceTests(PostgresFixture fixture) : IAsyncLifetime
     {
         var admin = await fixture.SeedAdminAsync("admin", Password);
 
-        var result = await CreateService().ChangePasswordAsync(admin.Id, new ChangePasswordRequest(Password, "weak"), Ct);
+        var result = await CreateService().ChangePasswordAsync(admin.Id, new ChangePasswordRequest(Password, "weak"), Owner, Ct);
 
         Assert.Equal(ErrorKind.Validation, result.Error!.Kind);
         Assert.True(result.Error.Fields!.ContainsKey("password"));
@@ -154,19 +210,32 @@ public sealed class AuthServiceTests(PostgresFixture fixture) : IAsyncLifetime
         var admin = await fixture.SeedAdminAsync("admin", Password);
         for (var i = 0; i < AuthService.MaxFailedAttempts; i++)
         {
-            await CreateService().ChangePasswordAsync(admin.Id, new ChangePasswordRequest("Wrong-Password-1", "New-Password-22"), Ct);
+            await CreateService().ChangePasswordAsync(admin.Id, new ChangePasswordRequest("Wrong-Password-1", "New-Password-22"), Owner, Ct);
         }
 
-        var result = await CreateService().ChangePasswordAsync(admin.Id, new ChangePasswordRequest(Password, "New-Password-22"), Ct);
+        var result = await CreateService().ChangePasswordAsync(admin.Id, new ChangePasswordRequest(Password, "New-Password-22"), Owner, Ct);
 
         Assert.Equal([AuthService.WrongPassword], result.Error!.Fields![AuthService.CurrentPasswordField]);
-        Assert.Equal(clock.GetUtcNow() + AuthService.LockoutDuration, (await fixture.FindAdminAsync(admin.Id))!.LockoutUntil);
+        Assert.Equal(clock.GetUtcNow() + AuthService.LockoutDuration, (await fixture.FindLockoutAsync(admin.Id, Owner))!.LockoutUntil);
+    }
+
+    [Fact]
+    public async Task ChangePassword_Success_ClearsFailuresFromEveryNetwork()
+    {
+        var admin = await fixture.SeedAdminAsync("admin", Password);
+        await CreateService().LoginAsync("admin", "Wrong-Password-1", Attacker, Ct);
+        await CreateService().LoginAsync("admin", "Wrong-Password-1", Owner, Ct);
+
+        var result = await CreateService().ChangePasswordAsync(admin.Id, new ChangePasswordRequest(Password, "New-Password-22"), Owner, Ct);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(0, await fixture.CountLockoutsAsync(admin.Id));
     }
 
     [Fact]
     public async Task ChangePassword_ForDeletedAdmin_IsUnauthorized()
     {
-        var result = await CreateService().ChangePasswordAsync(42, new ChangePasswordRequest(Password, "New-Password-22"), Ct);
+        var result = await CreateService().ChangePasswordAsync(42, new ChangePasswordRequest(Password, "New-Password-22"), Owner, Ct);
 
         Assert.Equal(AuthService.SessionExpired, result.Error!.Code);
     }
@@ -176,7 +245,7 @@ public sealed class AuthServiceTests(PostgresFixture fixture) : IAsyncLifetime
         var admin = await fixture.SeedAdminAsync("admin", Password);
         var hasher = new RehashingHasher();
 
-        var result = await CreateService(hasher).LoginAsync("admin", Password, Ct);
+        var result = await CreateService(hasher).LoginAsync("admin", Password, Owner, Ct);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(RehashingHasher.NewHash, (await fixture.FindAdminAsync(admin.Id))!.PasswordHash);
@@ -203,7 +272,7 @@ public sealed class AuthServiceTests(PostgresFixture fixture) : IAsyncLifetime
             await db.SaveChangesAsync(Ct);
         }
 
-        var result = await CreateService().ChangePasswordAsync(admin.Id, new ChangePasswordRequest(Password, "New-Password-22"), Ct);
+        var result = await CreateService().ChangePasswordAsync(admin.Id, new ChangePasswordRequest(Password, "New-Password-22"), Owner, Ct);
 
         Assert.True(result.IsSuccess);
         Assert.False((await fixture.FindAdminAsync(admin.Id))!.MustChangePassword);
@@ -270,7 +339,7 @@ public sealed class AuthServiceTests(PostgresFixture fixture) : IAsyncLifetime
     {
         var admin = await fixture.SeedAdminAsync("admin", Password);
 
-        await CreateService().LoginAsync("admin", Password, Ct);
+        await CreateService().LoginAsync("admin", Password, Owner, Ct);
 
         var entry = Assert.Single(logs.ForEvent(1001));
         Assert.Equal((SecurityAuditLogger.Category, LogLevel.Information), (entry.Category, entry.Level));
@@ -284,7 +353,7 @@ public sealed class AuthServiceTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await fixture.SeedAdminAsync("admin", Password);
 
-        await CreateService().LoginAsync(username, "Wrong-Password-1", Ct);
+        await CreateService().LoginAsync(username, "Wrong-Password-1", Owner, Ct);
 
         var entry = Assert.Single(logs.ForEvent(1002));
         Assert.Equal(LogLevel.Warning, entry.Level);
@@ -299,10 +368,10 @@ public sealed class AuthServiceTests(PostgresFixture fixture) : IAsyncLifetime
 
         for (var i = 0; i < AuthService.MaxFailedAttempts; i++)
         {
-            await CreateService().LoginAsync("admin", "Wrong-Password-1", Ct);
+            await CreateService().LoginAsync("admin", "Wrong-Password-1", Owner, Ct);
         }
 
-        await CreateService().LoginAsync("admin", Password, Ct);
+        await CreateService().LoginAsync("admin", Password, Owner, Ct);
 
         var locked = Assert.Single(logs.ForEvent(1003));
         Assert.Contains($"Admin {admin.Id} locked out", locked.Message, StringComparison.Ordinal);

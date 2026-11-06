@@ -26,6 +26,8 @@ public sealed class AuthService(
 {
     public const int MaxFailedAttempts = 5;
     public static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
+    /// <summary>Failures older than this are forgotten: isolated mistakes do not add up forever.</summary>
+    public static readonly TimeSpan FailureMemory = TimeSpan.FromDays(1);
     public const string InvalidCredentials = "auth.invalidCredentials";
     public const string SessionExpired = "auth.sessionExpired";
     public const string CurrentPasswordField = "currentPassword";
@@ -37,7 +39,8 @@ public sealed class AuthService(
     private static readonly string TimingHash =
         new PasswordHasher<AdminUser>().HashPassword(null!, Guid.NewGuid().ToString());
 
-    public async Task<Result<AdminUser>> LoginAsync(string? username, string? password, CancellationToken cancellationToken)
+    /// <param name="clientKey">Network of the caller (<see cref="ClientNetwork.KeyOf"/>): failures and lockouts are counted per account and network.</param>
+    public async Task<Result<AdminUser>> LoginAsync(string? username, string? password, string clientKey, CancellationToken cancellationToken)
     {
         if (!IsPlausible(username, password))
         {
@@ -54,7 +57,7 @@ public sealed class AuthService(
         }
 
         var now = clock.GetUtcNow();
-        if (user.LockoutUntil > now)
+        if (await IsLockedAsync(user.Id, clientKey, now, cancellationToken))
         {
             audit.LoginFailed(SecurityAuditLogger.ReasonLocked, user.Id);
             return AppError.Unauthorized(InvalidCredentials);
@@ -64,7 +67,7 @@ public sealed class AuthService(
         if (verification == PasswordVerificationResult.Failed)
         {
             audit.LoginFailed(SecurityAuditLogger.ReasonWrongPassword, user.Id);
-            await RegisterFailureAsync(user, now, cancellationToken);
+            await RegisterFailureAsync(user.Id, clientKey, now, cancellationToken);
             return AppError.Unauthorized(InvalidCredentials);
         }
 
@@ -73,9 +76,8 @@ public sealed class AuthService(
             user.PasswordHash = hasher.HashPassword(user, password!);
         }
 
-        user.FailedAttempts = 0;
-        user.LockoutUntil = null;
         await db.SaveChangesAsync(cancellationToken);
+        await ClearFailuresAsync(user.Id, clientKey, cancellationToken);
         audit.LoginSucceeded(user.Id);
         return user;
     }
@@ -124,7 +126,8 @@ public sealed class AuthService(
     /// towards the login lockout, so a stolen session cannot be used to brute-force the password.
     /// The security stamp rotates: every other session of the user is invalidated.
     /// </summary>
-    public async Task<Result<AdminUser>> ChangePasswordAsync(int adminId, ChangePasswordRequest request, CancellationToken cancellationToken)
+    public async Task<Result<AdminUser>> ChangePasswordAsync(
+        int adminId, ChangePasswordRequest request, string clientKey, CancellationToken cancellationToken)
     {
         var errors = new ValidationErrors();
         errors.AddIf(string.IsNullOrEmpty(request.CurrentPassword), CurrentPasswordField, TextRules.Required);
@@ -141,7 +144,7 @@ public sealed class AuthService(
         }
 
         var now = clock.GetUtcNow();
-        if (user.LockoutUntil > now)
+        if (await IsLockedAsync(adminId, clientKey, now, cancellationToken))
         {
             audit.PasswordChangeFailed(SecurityAuditLogger.ReasonLocked, adminId);
             return WrongPasswordError();
@@ -152,16 +155,16 @@ public sealed class AuthService(
             || hasher.VerifyHashedPassword(user, user.PasswordHash, current) == PasswordVerificationResult.Failed)
         {
             audit.PasswordChangeFailed(SecurityAuditLogger.ReasonWrongPassword, adminId);
-            await RegisterFailureAsync(user, now, cancellationToken);
+            await RegisterFailureAsync(adminId, clientKey, now, cancellationToken);
             return WrongPasswordError();
         }
 
         user.PasswordHash = hasher.HashPassword(user, request.Password!);
         user.MustChangePassword = false;
         user.SecurityStamp = Guid.NewGuid();
-        user.FailedAttempts = 0;
-        user.LockoutUntil = null;
         await db.SaveChangesAsync(cancellationToken);
+        // New password: failures counted against the old one, from any network, no longer matter.
+        await db.LoginLockouts.Where(l => l.UserId == adminId).ExecuteDeleteAsync(cancellationToken);
         audit.PasswordChanged(adminId);
         return user;
     }
@@ -174,22 +177,20 @@ public sealed class AuthService(
         && !string.IsNullOrEmpty(password)
         && password.Length <= PasswordPolicy.MaxLength;
 
-    // Single atomic UPDATE: safe when several replicas process failed logins for the same account.
-    private async Task RegisterFailureAsync(AdminUser user, DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        var adminId = user.Id;
-        DateTimeOffset? lockUntil = now.Add(LockoutDuration);
-        await db.AdminUsers
-            .Where(u => u.Id == adminId)
-            .ExecuteUpdateAsync(s => s
-                .SetProperty(u => u.LockoutUntil, u => u.FailedAttempts + 1 >= MaxFailedAttempts ? lockUntil : u.LockoutUntil)
-                .SetProperty(u => u.FailedAttempts, u => u.FailedAttempts + 1 >= MaxFailedAttempts ? 0 : u.FailedAttempts + 1),
-                cancellationToken);
+    private Task<bool> IsLockedAsync(int adminId, string clientKey, DateTimeOffset now, CancellationToken cancellationToken) =>
+        db.LoginLockouts.AnyAsync(
+            l => l.UserId == adminId && l.ClientKey == clientKey && l.LockoutUntil > now, cancellationToken);
 
-        // Based on the counter read before the update: under concurrent failures the audit entry may be off by one attempt.
-        if (user.FailedAttempts + 1 >= MaxFailedAttempts)
+    private Task ClearFailuresAsync(int adminId, string clientKey, CancellationToken cancellationToken) =>
+        db.LoginLockouts.Where(l => l.UserId == adminId && l.ClientKey == clientKey).ExecuteDeleteAsync(cancellationToken);
+
+    private async Task RegisterFailureAsync(int adminId, string clientKey, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var lockUntil = now.Add(LockoutDuration);
+        if (await db.RecordLoginFailureAsync(
+                adminId, clientKey, now, MaxFailedAttempts, lockUntil, now.Subtract(FailureMemory), cancellationToken))
         {
-            audit.AccountLocked(adminId, lockUntil.Value);
+            audit.AccountLocked(adminId, lockUntil);
         }
     }
 }

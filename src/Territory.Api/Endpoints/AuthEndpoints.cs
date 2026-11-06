@@ -32,7 +32,7 @@ public static class AuthEndpoints
     private static async Task<IResult> LoginAsync(
         LoginRequest request, HttpContext context, AuthService auth, CancellationToken cancellationToken)
     {
-        var result = await auth.LoginAsync(request.Username, request.Password, cancellationToken);
+        var result = await auth.LoginAsync(request.Username, request.Password, ClientKey(context), cancellationToken);
         if (!result.IsSuccess)
         {
             return result.Error!.ToHttp();
@@ -77,7 +77,7 @@ public static class AuthEndpoints
     private static async Task<IResult> ChangePasswordAsync(
         ChangePasswordRequest request, HttpContext context, AuthService auth, CancellationToken cancellationToken)
     {
-        var result = await auth.ChangePasswordAsync(context.User.GetActorId(), request, cancellationToken);
+        var result = await auth.ChangePasswordAsync(context.User.GetActorId(), request, ClientKey(context), cancellationToken);
         if (!result.IsSuccess)
         {
             return result.Error!.ToHttp();
@@ -89,4 +89,6 @@ public static class AuthEndpoints
         AuthSetup.IssueXsrfToken(context);
         return Results.NoContent();
     }
+
+    private static string ClientKey(HttpContext context) => ClientNetwork.KeyOf(context.Connection.RemoteIpAddress);
 }

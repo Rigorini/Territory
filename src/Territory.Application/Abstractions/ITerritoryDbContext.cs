@@ -10,8 +10,19 @@ public interface ITerritoryDbContext
     DbSet<TerritoryArea> Territories { get; }
     DbSet<Publisher> Publishers { get; }
     DbSet<Assignment> Assignments { get; }
+    DbSet<LoginLockout> LoginLockouts { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Counts one failed attempt of the user from the client in a single atomic statement (safe across replicas).
+    /// On the <paramref name="maxAttempts"/>-th failure (at least 2) the pair is locked until <paramref name="lockUntil"/> and the counter restarts.
+    /// Rows not updated since <paramref name="purgeBefore"/> are deleted first.
+    /// </summary>
+    /// <returns>True when this failure locked the pair.</returns>
+    Task<bool> RecordLoginFailureAsync(
+        int userId, string clientKey, DateTimeOffset now, int maxAttempts, DateTimeOffset lockUntil, DateTimeOffset purgeBefore,
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Runs the operation in one transaction (retried as a whole on transient failures, so it must not keep state

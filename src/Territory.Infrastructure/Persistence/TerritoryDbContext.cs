@@ -35,7 +35,27 @@ public sealed class TerritoryDbContext(DbContextOptions<TerritoryDbContext> opti
     public Task AcquireTransactionLockAsync(long key, CancellationToken cancellationToken) =>
         Database.ExecuteSqlAsync($"SELECT pg_advisory_xact_lock({key})", cancellationToken);
 
+    public async Task<bool> RecordLoginFailureAsync(
+        int userId, string clientKey, DateTimeOffset now, int maxAttempts, DateTimeOffset lockUntil, DateTimeOffset purgeBefore,
+        CancellationToken cancellationToken)
+    {
+        await Database.ExecuteSqlAsync($"DELETE FROM login_lockout WHERE updated_at < {purgeBefore}", cancellationToken);
+
+        // The first failure inserts the row, the next ones increment it; the lock is set by the failure that reaches the limit.
+        var locked = await Database.SqlQuery<bool>($"""
+            INSERT INTO login_lockout AS l (user_id, client_key, failed_attempts, lockout_until, updated_at)
+            VALUES ({userId}, {clientKey}, 1, NULL, {now})
+            ON CONFLICT (user_id, client_key) DO UPDATE SET
+                failed_attempts = CASE WHEN l.failed_attempts + 1 >= {maxAttempts} THEN 0 ELSE l.failed_attempts + 1 END,
+                lockout_until   = CASE WHEN l.failed_attempts + 1 >= {maxAttempts} THEN {lockUntil} ELSE l.lockout_until END,
+                updated_at      = {now}
+            RETURNING l.lockout_until IS NOT DISTINCT FROM {lockUntil} AS "Value"
+            """).ToListAsync(cancellationToken);
+        return locked.SingleOrDefault();
+    }
+
     public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
+    public DbSet<LoginLockout> LoginLockouts => Set<LoginLockout>();
     public DbSet<Municipality> Municipalities => Set<Municipality>();
     public DbSet<TerritoryArea> Territories => Set<TerritoryArea>();
     public DbSet<Publisher> Publishers => Set<Publisher>();
@@ -56,6 +76,14 @@ public sealed class TerritoryDbContext(DbContextOptions<TerritoryDbContext> opti
             e.Property(x => x.Language).HasMaxLength(10);
             e.Property(x => x.Theme).HasConversion<short>();
             e.Property(x => x.Role).HasConversion<short>();
+        });
+
+        modelBuilder.Entity<LoginLockout>(e =>
+        {
+            e.ToTable("login_lockout");
+            e.HasKey(x => new { x.UserId, x.ClientKey });
+            e.Property(x => x.ClientKey).HasMaxLength(LoginLockout.ClientKeyMaxLength);
+            e.HasOne<AdminUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Municipality>(e =>

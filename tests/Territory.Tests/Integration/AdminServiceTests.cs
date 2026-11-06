@@ -119,17 +119,27 @@ public sealed class AdminServiceTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task List_ShowsAdminsLockedOutFromAnyNetwork()
+    {
+        var locked = await fixture.SeedAdminAsync("locked", Password);
+        var failing = await fixture.SeedAdminAsync("failing", Password);
+        var expired = await fixture.SeedAdminAsync("expired", Password);
+        await fixture.SeedLockoutAsync(locked.Id, "10.0.0.1", 0, clock.GetUtcNow().AddMinutes(5), clock.GetUtcNow());
+        await fixture.SeedLockoutAsync(failing.Id, "10.0.0.1", 3, null, clock.GetUtcNow());
+        await fixture.SeedLockoutAsync(expired.Id, "10.0.0.1", 0, clock.GetUtcNow().AddMinutes(-1), clock.GetUtcNow());
+
+        var admins = (await service.ListAsync(Ct)).ToDictionary(a => a.Username, a => a.IsLocked);
+
+        Assert.Equal((true, false, false), (admins["locked"], admins["failing"], admins["expired"]));
+    }
+
+    [Fact]
     public async Task Update_WithPassword_RotatesStampAndClearsLockout()
     {
         var actor = await fixture.SeedAdminAsync("actor", Password);
         var admin = await fixture.SeedAdminAsync("admin", Password);
-        await using (var other = fixture.CreateDbContext())
-        {
-            var tracked = await other.AdminUsers.FindAsync([admin.Id], Ct);
-            tracked!.FailedAttempts = 3;
-            tracked.LockoutUntil = clock.GetUtcNow().AddMinutes(5);
-            await other.SaveChangesAsync(Ct);
-        }
+        await fixture.SeedLockoutAsync(admin.Id, "10.0.0.1", 0, clock.GetUtcNow().AddMinutes(5), clock.GetUtcNow());
+        await fixture.SeedLockoutAsync(admin.Id, "10.0.0.2", 3, null, clock.GetUtcNow());
 
         var result = await service.UpdateAsync(admin.Id, new SaveAdminRequest("admin", "Mario Rossi", NewPassword), actor.Id, Ct);
 
@@ -137,8 +147,7 @@ public sealed class AdminServiceTests(PostgresFixture fixture) : IAsyncLifetime
         var stored = await fixture.FindAdminAsync(admin.Id);
         Assert.NotEqual(admin.SecurityStamp, stored!.SecurityStamp);
         Assert.NotEqual(admin.PasswordHash, stored.PasswordHash);
-        Assert.Equal(0, stored.FailedAttempts);
-        Assert.Null(stored.LockoutUntil);
+        Assert.Equal(0, await fixture.CountLockoutsAsync(admin.Id));
         // Someone else chose this password: it is temporary until the owner replaces it.
         Assert.True(stored.MustChangePassword);
     }

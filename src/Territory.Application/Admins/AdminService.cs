@@ -7,6 +7,7 @@ using Territory.Application.Security;
 
 namespace Territory.Application.Admins;
 
+/// <summary>IsLocked: the account is locked out from at least one client network.</summary>
 public sealed record AdminDto(int Id, string Username, string DisplayName, DateTimeOffset CreatedAt, bool IsLocked, AdminRole Role);
 
 /// <summary>
@@ -33,7 +34,9 @@ public sealed class AdminService(
         var now = clock.GetUtcNow();
         var admins = await db.AdminUsers
             .AsNoTracking()
-            .Select(u => new AdminDto(u.Id, u.Username, u.DisplayName, u.CreatedAt, u.LockoutUntil != null && u.LockoutUntil > now, u.Role))
+            .Select(u => new AdminDto(
+                u.Id, u.Username, u.DisplayName, u.CreatedAt,
+                db.LoginLockouts.Any(l => l.UserId == u.Id && l.LockoutUntil > now), u.Role))
             .ToListAsync(cancellationToken);
         return admins
             .OrderBy(a => a.DisplayName, NameOrdering.Comparer)
@@ -78,7 +81,7 @@ public sealed class AdminService(
         }
 
         audit.AdminCreated(user.Id, actorId);
-        return ToDto(user);
+        return ToDto(user, isLocked: false);
     }
 
     public async Task<Result<AdminDto>> UpdateAsync(int id, SaveAdminRequest request, int actorId, CancellationToken cancellationToken)
@@ -129,13 +132,19 @@ public sealed class AdminService(
             return AppError.Conflict(UsernameTaken);
         }
 
+        if (changePassword)
+        {
+            // A new password unlocks the account from every network.
+            await db.LoginLockouts.Where(l => l.UserId == id).ExecuteDeleteAsync(cancellationToken);
+        }
+
         audit.AdminUpdated(user.Id, actorId, changePassword);
         if (roleChanged)
         {
             audit.AdminRoleChanged(user.Id, user.Role, actorId);
         }
 
-        return ToDto(user);
+        return ToDto(user, await IsLockedAsync(id, cancellationToken));
     }
 
     public async Task<Result<Unit>> DeleteAsync(int id, int actorId, CancellationToken cancellationToken)
@@ -171,8 +180,6 @@ public sealed class AdminService(
     {
         user.PasswordHash = hasher.HashPassword(user, password);
         user.SecurityStamp = Guid.NewGuid();
-        user.FailedAttempts = 0;
-        user.LockoutUntil = null;
     }
 
     private Task<bool> UsernameExistsAsync(string username, int? excludeId, CancellationToken cancellationToken)
@@ -183,6 +190,12 @@ public sealed class AdminService(
             cancellationToken);
     }
 
-    private AdminDto ToDto(AdminUser user) =>
-        new(user.Id, user.Username, user.DisplayName, user.CreatedAt, user.LockoutUntil > clock.GetUtcNow(), user.Role);
+    private Task<bool> IsLockedAsync(int id, CancellationToken cancellationToken)
+    {
+        var now = clock.GetUtcNow();
+        return db.LoginLockouts.AnyAsync(l => l.UserId == id && l.LockoutUntil > now, cancellationToken);
+    }
+
+    private static AdminDto ToDto(AdminUser user, bool isLocked) =>
+        new(user.Id, user.Username, user.DisplayName, user.CreatedAt, isLocked, user.Role);
 }

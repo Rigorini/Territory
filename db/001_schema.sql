@@ -1,13 +1,13 @@
 -- =============================================================
--- Registro Territori - schema PostgreSQL (script unico)
--- Eseguire su un database vuoto, ad es.:
---   psql -h <host> -U <owner> -d territory -f db/001_schema.sql
--- Lo script e' idempotente sulle tabelle (IF NOT EXISTS).
+-- Registro Territori - schema PostgreSQL, versione 1 (baseline)
+-- Gli script db/NNN_*.sql sono applicati in ordine dall'applicazione all'avvio
+-- (tabella schema_version); vedere il README, "Database setup".
+-- Ogni script gira in una transazione aperta dall'applicazione: niente BEGIN/COMMIT qui.
+-- Per eseguirlo a mano: psql -1 -v ON_ERROR_STOP=1 -h <host> -U <owner> -d territory -f db/001_schema.sql
+-- Questo script e' idempotente (IF NOT EXISTS): i database creati prima del versionamento lo rieseguono senza perdere dati.
 -- Nomi e cognomi sono cifrati dall'applicazione (AES-GCM, prefisso enc:v1:): per questo le colonne sono text.
 -- Il primo amministratore si crea dalla pagina di configurazione iniziale dell'applicazione.
 -- =============================================================
-
-BEGIN;
 
 -- Database creati con il vecchio nome della tabella.
 DO $$
@@ -109,4 +109,3 @@ CREATE TABLE IF NOT EXISTS data_protection_keys (
     xml           text NULL
 );
 
-COMMIT;
