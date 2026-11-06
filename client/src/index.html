@@ -63,6 +63,13 @@
           visibility 0s linear 0.4s;
       }
 
+      /* Dark theme (stored choice or system preference, see splash.js). */
+      [data-splash-theme='dark'] .app-splash {
+        background:
+          radial-gradient(120% 70% at 50% -10%, rgba(94, 148, 255, 0.28), transparent 62%),
+          linear-gradient(158deg, #05070f 0%, #0d1020 52%, #05070f 100%);
+      }
+
       .app-splash::before {
         content: '';
         position: absolute;
@@ -220,7 +227,7 @@
             />
           </svg>
         </div>
-        <h1 class="app-splash__title">Territori</h1>
+        <h1 id="app-splash-title" class="app-splash__title">Territori</h1>
         <p id="app-splash-subtitle" class="app-splash__subtitle">Registro territori</p>
         <div class="app-splash__progress" aria-hidden="true"><span></span></div>
         <p id="app-splash-phase" class="app-splash__phase">Avvio dell’applicazione…</p>

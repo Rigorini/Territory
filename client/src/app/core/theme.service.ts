@@ -17,7 +17,11 @@ export class ThemeService {
 
   set(theme: ThemePreference): void {
     this.preference.set(theme);
-    localStorage.setItem(STORAGE_KEY, theme);
+    try {
+      localStorage.setItem(STORAGE_KEY, theme);
+    } catch {
+      // Storage unavailable (e.g. private mode): the theme still applies for this session.
+    }
   }
 
   private apply(theme: ThemePreference): void {
@@ -27,7 +31,11 @@ export class ThemeService {
   }
 
   private readStored(): ThemePreference {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return THEMES.find(t => t === stored) ?? 'system';
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return THEMES.find(t => t === stored) ?? 'system';
+    } catch {
+      return 'system';
+    }
   }
 }

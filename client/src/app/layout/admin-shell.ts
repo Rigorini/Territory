@@ -1,6 +1,4 @@
 import { Component, computed, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { BreakpointObserver } from '@angular/cdk/layout';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
@@ -10,7 +8,6 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { map } from 'rxjs';
 import { THEMES, ThemeService } from '../core/theme.service';
 import { LanguageService, SUPPORTED_LANGUAGES } from '../core/language.service';
 import { AuthService } from '../core/auth.service';
@@ -26,8 +23,6 @@ interface NavItem {
   labelKey: string;
   roles: readonly AdminRoleValue[];
 }
-
-const COMPACT_LAYOUT_QUERY = '(max-width: 800px)';
 
 @Component({
   selector: 'app-admin-shell',
@@ -59,12 +54,6 @@ export class AdminShell {
     { path: 'backup', icon: 'backup', labelKey: 'nav.backup', roles: MANAGER_ROLES },
   ];
   protected readonly navItems = computed(() => this.allNavItems.filter(i => this.auth.hasRole(i.roles)));
-
-  protected readonly compact = toSignal(
-    inject(BreakpointObserver).observe(COMPACT_LAYOUT_QUERY).pipe(map(r => r.matches)),
-    { initialValue: false },
-  );
-  protected readonly sidenavMode = computed(() => (this.compact() ? 'over' : 'side'));
 
   constructor() {
     const user = this.auth.user();

@@ -1,5 +1,6 @@
 {
   "app": {
+    "name": "Territory",
     "title": "Territory Register",
     "version": "Version {{version}}"
   },

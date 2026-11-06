@@ -15,35 +15,56 @@
   var doc = document;
   var root = doc.documentElement;
 
-  /* Theme: same storage key and class names as ThemeService. */
-  try {
-    var stored = localStorage.getItem('territory.theme');
-    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    var dark = stored === 'dark' || (stored !== 'light' && prefersDark);
-    root.classList.toggle('theme-dark', dark);
-    root.classList.toggle('theme-light', !dark);
-  } catch (e) {
-    /* Storage can be unavailable in private mode: the default theme is fine. */
+  function readStored(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (e) {
+      /* Storage can be unavailable in private mode: fall back to the system settings. */
+      return null;
+    }
   }
 
-  /* Pick the same language LanguageService will choose. */
-  var lang = 'en';
+  /*
+   * Theme: same storage key as ThemeService. A stored light/dark choice wins, otherwise the
+   * system preference applies. It is exposed as data-splash-theme (not the theme-* classes)
+   * because ThemeService rewrites those classes while the splash is still fading out.
+   */
+  var storedTheme = readStored('territory.theme');
+  var prefersDark = false;
   try {
-    var langs = navigator.languages || [navigator.language];
-    for (var i = 0; i < langs.length; i++) {
-      var base = (langs[i] || '').toLowerCase().split('-')[0];
-      if (base === 'it' || base === 'en') {
-        lang = base;
-        break;
-      }
-    }
+    prefersDark = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
   } catch (e) {
-    /* Keep English. */
+    /* Keep the light theme. */
+  }
+  var dark = storedTheme === 'dark' || (storedTheme !== 'light' && prefersDark);
+  root.classList.toggle('theme-dark', dark);
+  root.classList.toggle('theme-light', !dark);
+  root.setAttribute('data-splash-theme', dark ? 'dark' : 'light');
+
+  /* Language: same storage key as LanguageService. A stored choice wins, otherwise the system languages. */
+  var lang = 'en';
+  var storedLang = readStored('territory.language');
+  if (storedLang === 'it' || storedLang === 'en') {
+    lang = storedLang;
+  } else {
+    try {
+      var langs = navigator.languages || [navigator.language];
+      for (var i = 0; i < langs.length; i++) {
+        var base = (langs[i] || '').toLowerCase().split('-')[0];
+        if (base === 'it' || base === 'en') {
+          lang = base;
+          break;
+        }
+      }
+    } catch (e) {
+      /* Keep English. */
+    }
   }
   root.lang = lang;
 
   var TEXT = {
     it: {
+      name: 'Territori',
       subtitle: 'Registro territori',
       phases: [
         'Avvio dell’applicazione…',
@@ -56,6 +77,7 @@
       retry: 'Riprova'
     },
     en: {
+      name: 'Territory',
       subtitle: 'Territory Register',
       phases: [
         'Starting the app…',
@@ -74,9 +96,14 @@
   if (!splash) {
     return;
   }
+  var title = doc.getElementById('app-splash-title');
   var subtitle = doc.getElementById('app-splash-subtitle');
   var phase = doc.getElementById('app-splash-phase');
   var retry = doc.getElementById('app-splash-retry');
+  doc.title = text.name;
+  if (title) {
+    title.textContent = text.name;
+  }
   if (subtitle) {
     subtitle.textContent = text.subtitle;
   }
@@ -111,6 +138,9 @@
       }, delay)
     );
   }
+
+  /* The markup carries Italian placeholders: translate the first status right away. */
+  setPhase(0);
 
   /* Progressive, honest status messages while the app boots (cold-start hosting can take a while). */
   schedule(2500, 1);

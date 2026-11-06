@@ -1,7 +1,10 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, Injector, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { LanguageService } from './language.service';
+import { applyProfilePreferences } from './profile-preferences';
 import { AdminRoleValue } from './roles';
+import { ThemeService } from './theme.service';
 
 export interface AdminProfile {
   id: number;
@@ -19,6 +22,9 @@ export interface AdminProfile {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  // Resolved lazily: LanguageService -> TranslateService -> HttpClient -> authInterceptor -> AuthService
+  // would otherwise be a circular dependency.
+  private readonly injector = inject(Injector);
   private readonly profile = signal<AdminProfile | null>(null);
 
   readonly user = this.profile.asReadonly();
@@ -40,6 +46,7 @@ export class AuthService {
       this.http.post<AdminProfile>('/api/auth/login', { username, password }),
     );
     this.profile.set(profile);
+    this.applyPreferences(profile);
     return profile;
   }
 
@@ -62,7 +69,9 @@ export class AuthService {
       return true;
     }
     try {
-      this.profile.set(await firstValueFrom(this.http.get<AdminProfile>('/api/auth/me')));
+      const profile = await firstValueFrom(this.http.get<AdminProfile>('/api/auth/me'));
+      this.profile.set(profile);
+      this.applyPreferences(profile);
       return true;
     } catch (error) {
       if (error instanceof HttpErrorResponse && error.status === 401) {
@@ -80,6 +89,10 @@ export class AuthService {
   /** Replaces the cached profile after the server returned an updated copy. */
   updateProfile(profile: AdminProfile): void {
     this.profile.set(profile);
+  }
+
+  private applyPreferences(profile: AdminProfile): void {
+    applyProfilePreferences(profile, this.injector.get(ThemeService), this.injector.get(LanguageService));
   }
 
   clear(): void {

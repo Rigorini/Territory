@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideTranslateService } from '@ngx-translate/core';
 import { AdminProfile, AuthService } from './auth.service';
 
 const profile: AdminProfile = { id: 1, username: 'admin', displayName: 'Mario Rossi', theme: 0, language: null, role: 1 };
@@ -10,7 +11,7 @@ describe('AuthService', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideTranslateService()] });
     service = TestBed.inject(AuthService);
     http = TestBed.inject(HttpTestingController);
   });

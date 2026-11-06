@@ -1,9 +1,7 @@
 <mat-toolbar class="top">
-  @if (compact()) {
-    <button mat-icon-button (click)="sidenav.toggle()" [attr.aria-label]="'common.menu' | translate">
-      <mat-icon>menu</mat-icon>
-    </button>
-  }
+  <button mat-icon-button (click)="sidenav.toggle()" [attr.aria-label]="'common.menu' | translate">
+    <mat-icon>menu</mat-icon>
+  </button>
   <span class="title">{{ 'app.title' | translate }}</span>
   <span class="spacer"></span>
   @if (auth.user(); as user) {
@@ -40,12 +38,12 @@
 </mat-menu>
 
 <mat-sidenav-container class="container">
-  <mat-sidenav #sidenav [mode]="sidenavMode()" [opened]="!compact()" class="side">
+  <mat-sidenav #sidenav mode="over" [opened]="false" class="side">
     <div class="side-inner">
       <mat-nav-list class="nav">
         @for (item of navItems(); track item.path) {
           <a mat-list-item [routerLink]="item.path" routerLinkActive #rla="routerLinkActive"
-             [activated]="rla.isActive" (click)="compact() && sidenav.close()">
+             [activated]="rla.isActive" (click)="sidenav.close()">
             <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
             <span matListItemTitle>{{ item.labelKey | translate }}</span>
           </a>

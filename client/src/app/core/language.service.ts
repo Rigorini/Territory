@@ -4,6 +4,7 @@ import { TranslateService } from '@ngx-translate/core';
 export const SUPPORTED_LANGUAGES = ['en', 'it'] as const;
 export type Language = (typeof SUPPORTED_LANGUAGES)[number];
 export const FALLBACK_LANGUAGE: Language = 'en';
+const STORAGE_KEY = 'territory.language';
 
 /** Picks the first browser language we support, falling back to English. */
 export function resolveLanguage(browserLanguages: readonly string[]): Language {
@@ -28,10 +29,15 @@ export class LanguageService {
   readonly active = this.activeLanguage.asReadonly();
 
   init(): void {
-    this.use(resolveLanguage(navigator.languages ?? [navigator.language]));
+    this.use(this.readStored() ?? resolveLanguage(navigator.languages ?? [navigator.language]));
   }
 
   use(language: Language): void {
+    try {
+      localStorage.setItem(STORAGE_KEY, language);
+    } catch {
+      // Storage unavailable (e.g. private mode): the language still applies for this session.
+    }
     this.document.documentElement.lang = language;
     this.activeLanguage.set(language);
     this.pendingLoad = new Promise<void>(resolve => {
@@ -39,7 +45,10 @@ export class LanguageService {
         // The splash screen waits for this before revealing the app, so the first screen
         // never flashes raw translation keys. A failed request must not block startup.
         this.translate.use(language).subscribe({
-          next: () => resolve(),
+          next: () => {
+            this.document.title = this.translate.instant('app.name');
+            resolve();
+          },
           error: () => resolve(),
           complete: () => resolve(),
         });
@@ -56,5 +65,14 @@ export class LanguageService {
 
   get current(): string | null {
     return this.translate.getCurrentLang();
+  }
+
+  private readStored(): Language | null {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return SUPPORTED_LANGUAGES.find(l => l === stored) ?? null;
+    } catch {
+      return null;
+    }
   }
 }

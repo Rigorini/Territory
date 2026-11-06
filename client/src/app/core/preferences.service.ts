@@ -3,7 +3,8 @@ import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Feedback } from '../shared/feedback';
 import { AdminProfile, AuthService } from './auth.service';
-import { Language, LanguageService, SUPPORTED_LANGUAGES } from './language.service';
+import { Language, LanguageService } from './language.service';
+import { applyProfilePreferences } from './profile-preferences';
 import { THEMES, ThemePreference, ThemeService } from './theme.service';
 
 /**
@@ -19,11 +20,7 @@ export class PreferencesService {
   private readonly feedback = inject(Feedback);
 
   applyProfile(profile: AdminProfile): void {
-    this.theme.set(THEMES[profile.theme] ?? 'system');
-    const language = SUPPORTED_LANGUAGES.find(l => l === profile.language);
-    if (language) {
-      this.language.use(language);
-    }
+    applyProfilePreferences(profile, this.theme, this.language);
   }
 
   setTheme(theme: ThemePreference): Promise<void> {
