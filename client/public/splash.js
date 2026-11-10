@@ -49,7 +49,7 @@
     }
     if (metas.length) {
       metas[0].removeAttribute('media');
-      metas[0].setAttribute('content', dark ? '#0d1020' : '#0a2a6b');
+      metas[0].setAttribute('content', dark ? '#161b38' : '#0a2a6b');
     }
   } catch (e) {
     /* Keep the static meta tags. */
