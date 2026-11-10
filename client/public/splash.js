@@ -41,6 +41,20 @@
   root.classList.toggle('theme-light', !dark);
   root.setAttribute('data-splash-theme', dark ? 'dark' : 'light');
 
+  /* Android status/navigation bars: follow the effective theme (a stored choice can differ from the system one). */
+  try {
+    var metas = doc.querySelectorAll('meta[name="theme-color"]');
+    for (var m = metas.length - 1; m > 0; m--) {
+      metas[m].parentNode.removeChild(metas[m]);
+    }
+    if (metas.length) {
+      metas[0].removeAttribute('media');
+      metas[0].setAttribute('content', dark ? '#0d1020' : '#0a2a6b');
+    }
+  } catch (e) {
+    /* Keep the static meta tags. */
+  }
+
   /* Language: same storage key as LanguageService. A stored choice wins, otherwise the system languages. */
   var lang = 'en';
   var storedLang = readStored('territory.language');

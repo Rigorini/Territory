@@ -28,6 +28,11 @@ export class ThemeService {
     const root = this.document.documentElement;
     root.classList.toggle('theme-light', theme === 'light');
     root.classList.toggle('theme-dark', theme === 'dark');
+
+    const dark =
+      theme === 'dark' ||
+      (theme === 'system' && !!this.document.defaultView?.matchMedia?.('(prefers-color-scheme: dark)').matches);
+    this.document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0d1020' : '#0a2a6b');
   }
 
   private readStored(): ThemePreference {
